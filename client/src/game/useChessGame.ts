@@ -15,6 +15,10 @@ export const useChessGame = () => {
   const [fogNear, setFogNear] = useState(10);
   const [fogFar, setFogFar] = useState(80);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [boardStyle, setBoardStyle] = useState<'wood' | 'stone' | 'marble'>('wood');
+  const [windStrength, setWindStrength] = useState(1.0);
+  const [whiteColor, setWhiteColor] = useState('#f0d9b5');
+  const [blackColor, setBlackColor] = useState('#4a4a4a');
 
   const addLog = (message: string, type: LogEntry['type']) => {
     const newLog: LogEntry = {
@@ -88,22 +92,37 @@ export const useChessGame = () => {
                 } else {
                   addLog(`${selectedPiece.color} ${selectedPiece.type} killed ${clickedPiece.color} ${clickedPiece.type}`, 'kill');
                 }
+                
+                // EXECUTION ANIMATION START
                 setPieces(prev => prev.map(p => {
-                  if (p.id === selectedPiece.id) {
-                    let type = p.type;
-                    let maxHp = p.maxHp;
-                    let hp = p.hp;
-                    // Promotion
-                    if (p.type === 'pawn' && (y === 0 || y === 7)) {
-                      type = 'queen';
-                      maxHp = 40;
-                      hp = 40;
-                      addLog(`${p.color} Pawn promoted to Queen!`, 'promotion');
-                    }
-                    return { ...p, x, y, type, hp, maxHp, kills: p.kills + 1, hasMoved: true };
-                  }
+                  if (p.id === selectedPiece.id) return { ...p, status: 'attacking' as const };
+                  if (p.id === clickedPiece.id) return { ...p, status: 'dying' as const, hp: 0 };
                   return p;
-                }).filter(p => p.id !== clickedPiece.id));
+                }));
+
+                setTimeout(() => {
+                  const isPromotion = selectedPiece.type === 'pawn' && (y === 0 || y === 7);
+                  if (isPromotion) {
+                    addLog(`${selectedPiece.color} Pawn promoted to Queen!`, 'promotion');
+                  }
+
+                  setPieces(prev => prev.map(p => {
+                    if (p.id === selectedPiece.id) {
+                      let type = p.type;
+                      let maxHp = p.maxHp;
+                      let hp = p.hp;
+                      // Promotion
+                      if (isPromotion) {
+                        type = 'queen';
+                        maxHp = 40;
+                        hp = 40;
+                      }
+                      return { ...p, x, y, type, hp, maxHp, kills: p.kills + 1, hasMoved: true, status: 'idle' as const };
+                    }
+                    return p;
+                  }).filter(p => p.id !== clickedPiece.id));
+                }, 1000); // 1s for the killing animation
+
               } else {
                 addLog(`${selectedPiece.color} ${selectedPiece.type} dealt ${damage} dmg to ${clickedPiece.color} ${clickedPiece.type}`, 'attack');
                 setPieces(prev => prev.map(p => {
@@ -123,10 +142,21 @@ export const useChessGame = () => {
                    setWinner(clickedPiece.color);
                    addLog(`${clickedPiece.color.toUpperCase()} DEFENDED THE THRONE!`, 'kill');
                 }
+
+                // EXECUTION ANIMATION START (Counter kill)
                 setPieces(prev => prev.map(p => {
-                  if (p.id === clickedPiece.id) return { ...p, defends: p.defends + 1 };
+                  if (p.id === clickedPiece.id) return { ...p, status: 'attacking' as const };
+                  if (p.id === selectedPiece.id) return { ...p, status: 'dying' as const, hp: 0 };
                   return p;
-                }).filter(p => p.id !== selectedPiece.id));
+                }));
+
+                setTimeout(() => {
+                  setPieces(prev => prev.map(p => {
+                    if (p.id === clickedPiece.id) return { ...p, defends: p.defends + 1, status: 'idle' as const };
+                    return p;
+                  }).filter(p => p.id !== selectedPiece.id));
+                }, 1000);
+
               } else {
                 addLog(`${clickedPiece.color} ${clickedPiece.type} repelled attack (${damage === 0 ? 1 : damage} dmg to attacker)`, 'attack');
                 setPieces(prev => prev.map(p => {
@@ -145,6 +175,20 @@ export const useChessGame = () => {
           return;
         } else if (!clickedPiece) {
           // Normal empty square move
+          let logMsg = `${selectedPiece.color} ${selectedPiece.type} moved to ${String.fromCharCode(97 + x)}${y + 1}`;
+          let logType: LogEntry['type'] = 'move';
+
+          if (selectedPiece.type === 'pawn' && (y === 0 || y === 7)) {
+            logMsg = `${selectedPiece.color} Pawn promoted to Queen!`;
+            logType = 'promotion';
+          } else if (selectedPiece.type === 'king' && Math.abs(x - selectedPiece.x) === 2) {
+            const isKingside = x > selectedPiece.x;
+            logMsg = `${selectedPiece.color} Castled ${isKingside ? 'Kingside' : 'Queenside'}`;
+            logType = 'castle';
+          }
+
+          addLog(logMsg, logType);
+
           setPieces(prev => {
             let nextPieces = prev.map(p => {
               if (p.id === selectedPiece.id) {
@@ -156,7 +200,6 @@ export const useChessGame = () => {
                   type = 'queen';
                   maxHp = 40;
                   hp = 40;
-                  addLog(`${p.color} Pawn promoted to Queen!`, 'promotion');
                 }
                 return { ...p, x, y, type, hp, maxHp, hasMoved: true };
               }
@@ -169,15 +212,12 @@ export const useChessGame = () => {
               const row = selectedPiece.color === 'white' ? 0 : 7;
               const rookX = isKingside ? 7 : 0;
               const newRookX = isKingside ? 5 : 3;
-              addLog(`${selectedPiece.color} Castled ${isKingside ? 'Kingside' : 'Queenside'}`, 'castle');
               nextPieces = nextPieces.map(p => {
                 if (p.type === 'rook' && p.color === selectedPiece.color && p.x === rookX && p.y === row) {
                   return { ...p, x: newRookX, hasMoved: true };
                 }
                 return p;
               });
-            } else {
-              addLog(`${selectedPiece.color} ${selectedPiece.type} moved to ${String.fromCharCode(97 + x)}${y + 1}`, 'move');
             }
 
             return nextPieces;
@@ -210,6 +250,14 @@ export const useChessGame = () => {
     fogNear,
     fogFar,
     logs,
+    boardStyle,
+    windStrength,
+    whiteColor,
+    blackColor,
+    setBoardStyle,
+    setWindStrength,
+    setWhiteColor,
+    setBlackColor,
     setFogNear,
     setFogFar,
     setHasStarted,

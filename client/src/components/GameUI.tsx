@@ -13,6 +13,14 @@ interface Props {
   fogNear: number;
   fogFar: number;
   logs: LogEntry[];
+  boardStyle: 'wood' | 'stone' | 'marble';
+  windStrength: number;
+  whiteColor: string;
+  blackColor: string;
+  setBoardStyle: (style: 'wood' | 'stone' | 'marble') => void;
+  setWindStrength: (val: number) => void;
+  setWhiteColor: (color: string) => void;
+  setBlackColor: (color: string) => void;
   setFogNear: (val: number) => void;
   setFogFar: (val: number) => void;
   setHasStarted: (started: boolean) => void;
@@ -23,7 +31,10 @@ interface Props {
 
 export const GameUI: React.FC<Props> = ({ 
   turn, selectedPiece, battleResult, pieces, isPaused, winner, isNight, hasStarted, 
-  fogNear, fogFar, logs, setFogNear, setFogFar,
+  fogNear, fogFar, logs, 
+  boardStyle, windStrength, whiteColor, blackColor,
+  setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
+  setFogNear, setFogFar,
   setHasStarted, setIsNight, setIsPaused, resetGame 
 }) => {
   const [isTutorialOpen, setIsTutorialOpen] = React.useState(false);
@@ -288,15 +299,50 @@ export const GameUI: React.FC<Props> = ({
               Set to {isNight ? 'Sunrise' : 'Twilight'}
             </button>
 
-            <div style={{ background: 'rgba(0,0,0,0.4)', padding: '15px', borderRadius: '4px', marginBottom: '15px', border: '1px solid #d4af37' }}>
-              <div style={{ color: '#d4af37', marginBottom: '10px', fontSize: '14px', textTransform: 'uppercase' }}>Mist Density</div>
-              <div style={{ display: 'flex', alignItems: 'center', color: '#f0d9b5', fontSize: '14px' }}>
-                <span style={{ width: '80px' }}>Near: {fogNear}</span>
-                <input type="range" min="0" max="50" step="1" value={fogNear} onChange={(e) => setFogNear(parseInt(e.target.value))} style={{ flex: 1, pointerEvents: 'auto' }} />
+            <div style={{ background: 'rgba(0,0,0,0.4)', padding: '15px', borderRadius: '4px', marginBottom: '15px', border: '1px solid #d4af37', textAlign: 'left' }}>
+              <div style={{ color: '#d4af37', marginBottom: '10px', fontSize: '14px', textTransform: 'uppercase', textAlign: 'center' }}>Customization</div>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <div style={{ color: '#f0d9b5', fontSize: '12px', marginBottom: '5px' }}>Board Style</div>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  {(['wood', 'stone', 'marble'] as const).map(s => (
+                    <button key={s} onClick={() => setBoardStyle(s)} style={{ 
+                      flex: 1, padding: '5px', fontSize: '12px', background: boardStyle === s ? '#d4af37' : '#222', 
+                      color: boardStyle === s ? '#000' : '#d4af37', border: '1px solid #d4af37', cursor: 'pointer', textTransform: 'capitalize' 
+                    }}>{s}</button>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', color: '#f0d9b5', fontSize: '14px', marginTop: '5px' }}>
-                <span style={{ width: '80px' }}>Far: {fogFar}</span>
-                <input type="range" min="10" max="200" step="1" value={fogFar} onChange={(e) => setFogFar(parseInt(e.target.value))} style={{ flex: 1, pointerEvents: 'auto' }} />
+
+              <div style={{ marginBottom: '15px' }}>
+                <div style={{ color: '#f0d9b5', fontSize: '12px', marginBottom: '5px' }}>Team Colors</div>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '10px', color: '#aaa' }}>White</div>
+                    <input type="color" value={whiteColor} onChange={(e) => setWhiteColor(e.target.value)} style={{ width: '100%', height: '30px', border: '1px solid #d4af37', background: 'none', cursor: 'pointer', pointerEvents: 'auto' }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '10px', color: '#aaa' }}>Black</div>
+                    <input type="color" value={blackColor} onChange={(e) => setBlackColor(e.target.value)} style={{ width: '100%', height: '30px', border: '1px solid #d4af37', background: 'none', cursor: 'pointer', pointerEvents: 'auto' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <div style={{ color: '#f0d9b5', fontSize: '12px', marginBottom: '5px' }}>Wind Power: {windStrength.toFixed(1)}x</div>
+                <input type="range" min="0.1" max="3.0" step="0.1" value={windStrength} onChange={(e) => setWindStrength(parseFloat(e.target.value))} style={{ width: '100%', pointerEvents: 'auto' }} />
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.3)', paddingTop: '10px', marginTop: '10px' }}>
+                <div style={{ color: '#d4af37', marginBottom: '10px', fontSize: '14px', textTransform: 'uppercase', textAlign: 'center' }}>Mist Density</div>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#f0d9b5', fontSize: '14px' }}>
+                  <span style={{ width: '80px' }}>Near: {fogNear}</span>
+                  <input type="range" min="0" max="50" step="1" value={fogNear} onChange={(e) => setFogNear(parseInt(e.target.value))} style={{ flex: 1, pointerEvents: 'auto' }} />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', color: '#f0d9b5', fontSize: '14px', marginTop: '5px' }}>
+                  <span style={{ width: '80px' }}>Far: {fogFar}</span>
+                  <input type="range" min="10" max="200" step="1" value={fogFar} onChange={(e) => setFogFar(parseInt(e.target.value))} style={{ flex: 1, pointerEvents: 'auto' }} />
+                </div>
               </div>
             </div>
           </div>

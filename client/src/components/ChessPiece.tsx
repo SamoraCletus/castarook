@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { useCursor, Billboard, Text } from '@react-three/drei';
+import * as THREE from 'three';
 import type { Piece } from '../types';
 import { KnightPieceModel } from './Scenery';
 
@@ -7,18 +9,46 @@ interface Props {
   piece: Piece;
   isSelected: boolean;
   onClick: () => void;
+  customWhiteColor?: string;
+  customBlackColor?: string;
 }
 
-export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick }) => {
-  const [hovered, setHovered] = React.useState(false);
+export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick, customWhiteColor, customBlackColor }) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
   useCursor(hovered);
 
   const posX = piece.x - 3.5;
   const posZ = piece.y - 3.5;
   
-  const baseColor = piece.color === 'white' ? '#f0d9b5' : '#4a4a4a';
-  const highlightColor = isSelected ? '#ffeb3b' : hovered ? '#81c784' : baseColor;
+  const teamBaseColor = piece.color === 'white' ? (customWhiteColor || '#f0d9b5') : (customBlackColor || '#4a4a4a');
+  const highlightColor = isSelected ? '#ffeb3b' : hovered ? '#81c784' : teamBaseColor;
   const stripeColor = piece.secondaryColor || (piece.color === 'white' ? '#d4af37' : '#ff5252');
+
+  useFrame((state) => {
+    if (!groupRef.current) return;
+
+    const t = state.clock.getElapsedTime();
+
+    if (piece.status === 'attacking') {
+      // Lunge animation
+      const lunge = Math.sin(t * 15) * 0.5;
+      groupRef.current.position.y = 0.01 + Math.abs(lunge * 0.5);
+      // Move slightly forward based on color
+      const dir = piece.color === 'white' ? 1 : -1;
+      groupRef.current.position.z = posZ + lunge * 0.8 * dir;
+    } else if (piece.status === 'dying') {
+      // Death animation: Fall over and sink
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, Math.PI / 2.2, 0.1);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, -0.5, 0.05);
+    } else {
+      // Idle / Normal position
+      groupRef.current.position.x = posX;
+      groupRef.current.position.y = 0.01;
+      groupRef.current.position.z = posZ;
+      groupRef.current.rotation.x = 0;
+    }
+  });
 
   const getGeometry = () => {
     switch (piece.type) {
@@ -134,11 +164,9 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick }) => {
     }
   };
 
-  const getHeightOffset = () => 0.01;
-
   return (
     <group 
-      position={[posX, getHeightOffset(), posZ]} 
+      ref={groupRef}
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); }}
       onPointerOut={() => setHovered(false)}

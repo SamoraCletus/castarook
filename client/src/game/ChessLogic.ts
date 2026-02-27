@@ -21,7 +21,8 @@ export const setupBoard = (): Piece[] => {
     return {
       id: `${type}-${color}-${x}-${y}-${Math.random().toString(36).substr(2, 9)}`,
       type, color, secondaryColor, x, y, kills: 0, defends: 0, hp, maxHp: hp,
-      hasMoved: false
+      hasMoved: false,
+      status: 'idle'
     };
   };
 

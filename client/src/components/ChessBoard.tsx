@@ -36,15 +36,26 @@ interface BoardProps {
   selectedPieceId: string | null;
   validMoves: Position[];
   onSquareClick: (x: number, y: number) => void;
+  boardStyle: 'wood' | 'stone' | 'marble';
 }
 
-export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick }) => {
+export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick, boardStyle }) => {
   const squares = [];
+  
+  const getStyleColors = () => {
+    switch (boardStyle) {
+      case 'stone': return { light: '#999', dark: '#444', base: '#222' };
+      case 'marble': return { light: '#fff', dark: '#71d5e4', base: '#004d40' };
+      default: return { light: '#f0d9b5', dark: '#b58863', base: '#4a3b2c' };
+    }
+  };
+
+  const styleColors = getStyleColors();
   
   for (let x = 0; x < 8; x++) {
     for (let y = 0; y < 8; y++) {
       const isBlack = (x + y) % 2 === 1;
-      const color = isBlack ? '#b58863' : '#f0d9b5';
+      const color = isBlack ? styleColors.dark : styleColors.light;
       const isHighlight = validMoves.some(m => m.x === x && m.y === y);
       
       squares.push(
@@ -65,7 +76,7 @@ export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick }) 
       {/* Board Base */}
       <mesh position={[0, -0.5, 0]} receiveShadow>
         <boxGeometry args={[8.4, 1, 8.4]} />
-        <meshStandardMaterial color="#4a3b2c" />
+        <meshStandardMaterial color={styleColors.base} />
       </mesh>
       
       {/* Squares */}

@@ -13,6 +13,7 @@ export interface Piece {
   hp: number;
   maxHp: number;
   hasMoved: boolean;
+  status: 'idle' | 'attacking' | 'dying';
 }
 
 export interface Position {

@@ -14,6 +14,8 @@ function App() {
   const { 
     pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, 
     isNight, hasStarted, fogNear, fogFar, logs,
+    boardStyle, windStrength, whiteColor, blackColor,
+    setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
     setHasStarted, setIsNight, setIsPaused, setFogNear, setFogFar,
     resetGame, handleSquareClick 
   } = useChessGame();
@@ -55,12 +57,13 @@ function App() {
         <Environment preset={isNight ? "night" : "sunset"} />
 
         <group>
-          <Scenery isNight={isNight} />
+          <Scenery isNight={isNight} windStrength={windStrength} />
           <ChessBoard 
             pieces={pieces} 
             selectedPieceId={selectedPieceId} 
             validMoves={validMoves} 
             onSquareClick={handleSquareClick} 
+            boardStyle={boardStyle}
           />
           {pieces.map(piece => (
             <ChessPiece 
@@ -68,6 +71,8 @@ function App() {
               piece={piece} 
               isSelected={piece.id === selectedPieceId} 
               onClick={() => handleSquareClick(piece.x, piece.y)}
+              customWhiteColor={whiteColor}
+              customBlackColor={blackColor}
             />
           ))}
         </group>
@@ -105,6 +110,14 @@ function App() {
         fogNear={fogNear}
         fogFar={fogFar}
         logs={logs}
+        boardStyle={boardStyle}
+        windStrength={windStrength}
+        whiteColor={whiteColor}
+        blackColor={blackColor}
+        setBoardStyle={setBoardStyle}
+        setWindStrength={setWindStrength}
+        setWhiteColor={setWhiteColor}
+        setBlackColor={setBlackColor}
         setFogNear={setFogNear}
         setFogFar={setFogFar}
         setHasStarted={setHasStarted}
