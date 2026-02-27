@@ -7,9 +7,11 @@ import { ChessBoard } from './components/ChessBoard';
 import { ChessPiece } from './components/ChessPiece';
 import { GameUI } from './components/GameUI';
 import { DiceRoll } from './components/DiceRoll';
+import { CombatEffect } from './components/CombatEffect';
+import { Scenery } from './components/Scenery';
 
 function App() {
-  const { pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, setIsPaused, resetGame, handleSquareClick } = useChessGame();
+  const { pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, isNight, setIsNight, setIsPaused, resetGame, handleSquareClick } = useChessGame();
 
   const selectedPiece = useMemo(() => 
     pieces.find(p => p.id === selectedPieceId) || null,
@@ -22,22 +24,27 @@ function App() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <Canvas shadows camera={{ position: [0, 8, -10], fov: 50 }}>
-        {/* Lighting & Environment - Better Skybox */}
-        <ambientLight intensity={0.5} />
+        {/* Lighting & Environment */}
+        <ambientLight intensity={isNight ? 0.1 : 0.5} />
         <directionalLight 
           castShadow 
           position={[5, 15, -5]} 
-          intensity={1.2} 
+          intensity={isNight ? 0.2 : 1.2} 
           shadow-mapSize={[2048, 2048]} 
         />
         
-        {/* Epic Twilight/Sunset Skybox */}
-        <Sky sunPosition={[0, 1, -10]} turbidity={0.3} rayleigh={2} mieCoefficient={0.005} mieDirectionalG={0.8} />
-        <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-        <Environment preset="sunset" />
+        {/* Skybox for day/night */}
+        {!isNight ? (
+          <Sky sunPosition={[0, 1, -10]} turbidity={0.3} rayleigh={2} mieCoefficient={0.005} mieDirectionalG={0.8} />
+        ) : (
+          <Sky sunPosition={[0, -1, -10]} turbidity={10} rayleigh={0.5} mieCoefficient={0.1} mieDirectionalG={0.8} />
+        )}
+        <Stars radius={100} depth={50} count={isNight ? 10000 : 1000} factor={4} saturation={0} fade speed={1} />
+        <Environment preset={isNight ? "night" : "sunset"} />
 
         {/* Game Scene */}
         <group>
+          <Scenery isNight={isNight} />
           <ChessBoard 
             pieces={pieces} 
             selectedPieceId={selectedPieceId} 
@@ -53,6 +60,9 @@ function App() {
             />
           ))}
         </group>
+
+        {/* Immersive 3D Combat Visuals at Target Location */}
+        <CombatEffect battleResult={battleResult} isRolling={isRolling} />
 
         {/* 3D Dice Rolling Animation */}
         {(isRolling || battleResult) && battleResult && (
@@ -70,7 +80,7 @@ function App() {
           target={[0, 0, 0]} 
           maxPolarAngle={Math.PI / 2.2} 
           minDistance={5} 
-          maxDistance={25} 
+          maxDistance={35} 
           enabled={!isPaused} // Disable camera rotation when paused
         />
       </Canvas>
@@ -79,10 +89,12 @@ function App() {
       <GameUI 
         turn={turn} 
         selectedPiece={selectedPiece} 
-        battleResult={isRolling ? null : battleResult} // Hide 2D result while rolling
+        battleResult={isRolling ? null : battleResult}
         pieces={pieces}
         isPaused={isPaused}
         winner={winner}
+        isNight={isNight}
+        setIsNight={setIsNight}
         setIsPaused={setIsPaused}
         resetGame={resetGame}
       />

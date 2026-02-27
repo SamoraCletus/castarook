@@ -24,4 +24,6 @@ export interface BattleResult {
   defenderTotal: number;
   defenderStats: number;
   success: boolean;
+  targetX: number;
+  targetY: number;
 }

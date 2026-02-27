@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BattleResult, Piece } from '../types';
+import type { Piece, BattleResult } from '../types';
 
 interface Props {
   turn: string;
@@ -8,11 +8,13 @@ interface Props {
   pieces: Piece[];
   isPaused: boolean;
   winner: 'white' | 'black' | null;
+  isNight: boolean;
+  setIsNight: (night: boolean) => void;
   setIsPaused: (paused: boolean) => void;
   resetGame: () => void;
 }
 
-export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pieces, isPaused, winner, setIsPaused, resetGame }) => {
+export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pieces, isPaused, winner, isNight, setIsNight, setIsPaused, resetGame }) => {
   const whitePieces = pieces.filter(p => p.color === 'white');
   const blackPieces = pieces.filter(p => p.color === 'black');
   
@@ -193,6 +195,10 @@ export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pie
               Restart Match
             </button>
 
+            <button onClick={() => setIsNight(!isNight)} style={{ ...menuButtonStyle, background: isNight ? '#5c6bc0' : '#ffa726' }}>
+              Switch to {isNight ? 'Day' : 'Night'} Mode
+            </button>
+
             <button onClick={() => alert('Settings menu coming soon!')} style={menuButtonStyle}>
               Options
             </button>
@@ -200,28 +206,46 @@ export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pie
         </div>
       )}
 
-      {/* Center: Battle Result Banner (Only show when not rolling to avoid overlap with 3D dice) */}
+      {/* Center: Battle Result Banner (2D Pop-up) */}
       {battleResult && (
         <div style={{
-          background: battleResult.success ? 'rgba(0, 150, 0, 0.9)' : 'rgba(150, 0, 0, 0.9)',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'rgba(20, 20, 20, 0.95)',
+          border: `4px solid ${battleResult.success ? '#4caf50' : '#f44336'}`,
+          borderRadius: '16px',
+          padding: '30px 50px',
           color: 'white',
-          padding: '20px',
-          borderRadius: '12px',
-          alignSelf: 'center',
           textAlign: 'center',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-          animation: 'popIn 0.3s ease-out',
-          marginTop: 'auto',
-          marginBottom: 'auto'
+          boxShadow: '0 0 50px rgba(0,0,0,0.8), 0 0 20px rgba(255,255,255,0.1)',
+          animation: 'popInScale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          zIndex: 5,
+          minWidth: '400px',
+          pointerEvents: 'auto'
         }}>
-          <h2>Battle Resolved!</h2>
-          <div style={{ fontSize: '18px', margin: '10px 0' }}>
-            Attacker: {battleResult.attackerRoll} (Roll) + {battleResult.attackerStats} (Kills) = <strong>{battleResult.attackerTotal}</strong>
+          <h1 style={{ 
+            fontSize: '40px', 
+            margin: '0 0 20px 0', 
+            color: battleResult.success ? '#4caf50' : '#f44336',
+            textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+          }}>
+            {battleResult.success ? 'VICTORY!' : 'DEFEATED!'}
+          </h1>
+          
+          <div style={{ marginBottom: '25px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+            <div style={{ fontSize: '20px', marginBottom: '10px', color: '#ffeb3b' }}>
+              Attacker: {battleResult.attackerRoll} (Roll) + {battleResult.attackerStats} (Kills) = <strong>{battleResult.attackerTotal}</strong>
+            </div>
+            <div style={{ fontSize: '20px', color: '#82b1ff' }}>
+              Defender: {battleResult.defenderRoll} (Roll) + {battleResult.defenderStats} (Defends) = <strong>{battleResult.defenderTotal}</strong>
+            </div>
           </div>
-          <div style={{ fontSize: '18px', margin: '10px 0' }}>
-            Defender: {battleResult.defenderRoll} (Roll) + {battleResult.defenderStats} (Defends) = <strong>{battleResult.defenderTotal}</strong>
-          </div>
-          <h3>{battleResult.success ? 'Attacker Wins!' : 'Defender Holds!'}</h3>
+          
+          <h2 style={{ fontSize: '24px', margin: 0, opacity: 0.9 }}>
+            {battleResult.success ? 'The target was eliminated!' : 'The attack was repelled!'}
+          </h2>
         </div>
       )}
 
@@ -249,6 +273,10 @@ export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pie
         @keyframes popIn {
           0% { transform: scale(0.8); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes popInScale {
+          0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+          100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
         }
       `}</style>
     </div>

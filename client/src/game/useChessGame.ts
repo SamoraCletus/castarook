@@ -10,6 +10,7 @@ export const useChessGame = () => {
   const [isRolling, setIsRolling] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [winner, setWinner] = useState<'white' | 'black' | null>(null);
+  const [isNight, setIsNight] = useState(false);
 
   const resetGame = () => {
     setPieces(setupBoard());
@@ -51,7 +52,8 @@ export const useChessGame = () => {
           setBattleResult({ 
             attackerRoll, attackerTotal, attackerStats: selectedPiece.kills,
             defenderRoll, defenderTotal, defenderStats: clickedPiece.defends,
-            success 
+            success,
+            targetX: x, targetY: y
           });
 
           setTimeout(() => {
@@ -111,6 +113,8 @@ export const useChessGame = () => {
     isRolling,
     isPaused,
     winner,
+    isNight,
+    setIsNight,
     setIsPaused,
     resetGame,
     handleSquareClick
