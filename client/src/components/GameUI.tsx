@@ -216,10 +216,10 @@ export const GameUI: React.FC<Props> = ({ turn, selectedPiece, battleResult, pie
         }}>
           <h2>Battle Resolved!</h2>
           <div style={{ fontSize: '18px', margin: '10px 0' }}>
-            Attacker Total: {battleResult.attackerTotal}
+            Attacker: {battleResult.attackerRoll} (Roll) + {battleResult.attackerStats} (Kills) = <strong>{battleResult.attackerTotal}</strong>
           </div>
           <div style={{ fontSize: '18px', margin: '10px 0' }}>
-            Defender Total: {battleResult.defenderTotal}
+            Defender: {battleResult.defenderRoll} (Roll) + {battleResult.defenderStats} (Defends) = <strong>{battleResult.defenderTotal}</strong>
           </div>
           <h3>{battleResult.success ? 'Attacker Wins!' : 'Defender Holds!'}</h3>
         </div>

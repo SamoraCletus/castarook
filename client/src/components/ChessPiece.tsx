@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCursor } from '@react-three/drei';
+import { useCursor, Billboard, Text } from '@react-three/drei';
 import type { Piece } from '../types';
 
 interface Props {
@@ -124,10 +124,18 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick }) => {
       
       {/* Floating stats indicator - raised to clear all piece heights */}
       {(piece.kills > 0 || piece.defends > 0) && (
-        <mesh position={[0, 2.0, 0]}>
-          <boxGeometry args={[0.2, 0.2, 0.2]} />
-          <meshStandardMaterial color={piece.color === 'white' ? 'blue' : 'red'} />
-        </mesh>
+        <Billboard position={[0, 2.0, 0]} follow={true}>
+          {piece.kills > 0 && (
+            <Text position={[0, 0.2, 0]} fontSize={0.25} color="#ff8a80" outlineWidth={0.02} outlineColor="black">
+              ⚔️{piece.kills}
+            </Text>
+          )}
+          {piece.defends > 0 && (
+            <Text position={[0, -0.2, 0]} fontSize={0.25} color="#82b1ff" outlineWidth={0.02} outlineColor="black">
+              🛡️{piece.defends}
+            </Text>
+          )}
+        </Billboard>
       )}
     </group>
   );
