@@ -20,7 +20,8 @@ export const setupBoard = (): Piece[] => {
     const secondaryColor = color === 'white' ? '#d4af37' : '#ff5252'; // Gold for white, Bright red for black
     return {
       id: `${type}-${color}-${x}-${y}-${Math.random().toString(36).substr(2, 9)}`,
-      type, color, secondaryColor, x, y, kills: 0, defends: 0, hp, maxHp: hp
+      type, color, secondaryColor, x, y, kills: 0, defends: 0, hp, maxHp: hp,
+      hasMoved: false
     };
   };
 
@@ -105,6 +106,21 @@ export const getValidMoves = (piece: Piece, pieces: Piece[]): Position[] => {
     case 'king': {
       const dirs = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
       dirs.forEach(([dx, dy]) => addMove(x + dx, y + dy));
+
+      // Castling
+      if (!piece.hasMoved) {
+        const row = color === 'white' ? 0 : 7;
+        // Kingside
+        const rookK = pieces.find(p => p.type === 'rook' && p.color === color && p.x === 7 && p.y === row);
+        if (rookK && !rookK.hasMoved && !getPieceAt(pieces, 5, row) && !getPieceAt(pieces, 6, row)) {
+          moves.push({ x: 6, y: row });
+        }
+        // Queenside
+        const rookQ = pieces.find(p => p.type === 'rook' && p.color === color && p.x === 0 && p.y === row);
+        if (rookQ && !rookQ.hasMoved && !getPieceAt(pieces, 1, row) && !getPieceAt(pieces, 2, row) && !getPieceAt(pieces, 3, row)) {
+          moves.push({ x: 2, y: row });
+        }
+      }
       break;
     }
   }

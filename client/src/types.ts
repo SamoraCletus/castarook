@@ -12,6 +12,7 @@ export interface Piece {
   defends: number;
   hp: number;
   maxHp: number;
+  hasMoved: boolean;
 }
 
 export interface Position {
@@ -29,4 +30,11 @@ export interface BattleResult {
   success: boolean;
   targetX: number;
   targetY: number;
+}
+
+export interface LogEntry {
+  id: string;
+  message: string;
+  type: 'move' | 'attack' | 'kill' | 'promotion' | 'castle';
+  timestamp: number;
 }

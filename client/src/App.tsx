@@ -13,7 +13,7 @@ import { Scenery } from './components/Scenery';
 function App() {
   const { 
     pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, 
-    isNight, hasStarted, fogNear, fogFar,
+    isNight, hasStarted, fogNear, fogFar, logs,
     setHasStarted, setIsNight, setIsPaused, setFogNear, setFogFar,
     resetGame, handleSquareClick 
   } = useChessGame();
@@ -104,6 +104,7 @@ function App() {
         hasStarted={hasStarted}
         fogNear={fogNear}
         fogFar={fogFar}
+        logs={logs}
         setFogNear={setFogNear}
         setFogFar={setFogFar}
         setHasStarted={setHasStarted}
