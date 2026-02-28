@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { useMemo, useEffect, useRef } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Sky, Stars, Environment } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useChessGame } from './game/useChessGame';
 import { getValidMoves } from './game/ChessLogic';
 import { ChessBoard } from './components/ChessBoard';
@@ -10,7 +11,47 @@ import { DiceRoll } from './components/DiceRoll';
 import { CombatEffect } from './components/CombatEffect';
 import { Scenery } from './components/Scenery';
 
+// Component to handle camera reset logic
+const CameraHandler = ({ controlsRef }: { controlsRef: React.RefObject<OrbitControlsImpl> }) => {
+  const { camera } = useThree();
+
+  const resetCamera = () => {
+    if (controlsRef.current) {
+      // Original camera position: [0, 8, -10]
+      // Original target: [0, 0, 0]
+      camera.position.set(0, 8, -10);
+      controlsRef.current.target.set(0, 0, 0);
+      controlsRef.current.update();
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'r') {
+        resetCamera();
+      }
+    };
+
+    const handleMouseDown = (e: MouseEvent) => {
+      // Middle click check
+      if (e.button === 1) {
+        resetCamera();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleMouseDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, [camera, controlsRef]);
+
+  return null;
+};
+
 function App() {
+  const controlsRef = useRef<OrbitControlsImpl>(null);
   const { 
     pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, 
     isNight, hasStarted, fogNear, fogFar, logs,
@@ -56,6 +97,8 @@ function App() {
         <Stars radius={100} depth={50} count={isNight ? 5000 : 1000} factor={4} saturation={0} fade speed={1} />
         <Environment preset={isNight ? "night" : "sunset"} />
 
+        <CameraHandler controlsRef={controlsRef} />
+
         <group>
           <Scenery isNight={isNight} windStrength={windStrength} />
           <ChessBoard 
@@ -92,6 +135,7 @@ function App() {
         )}
 
         <OrbitControls 
+          ref={controlsRef}
           target={[0, 0, 0]} 
           maxPolarAngle={Math.PI / 2.2} 
           minDistance={5} 

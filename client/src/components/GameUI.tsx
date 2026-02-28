@@ -230,6 +230,7 @@ export const GameUI: React.FC<Props> = ({
                     <li>Orbit: Left Click + Drag</li>
                     <li>Pan: Right Click + Drag</li>
                     <li>Zoom: Scroll Wheel</li>
+                    <li>Reset View: Press 'R' or Middle Click</li>
                   </ul>
                 </li>
                 <li><strong>Victory Conditions:</strong> No checkmate exists in this saga. You must execute the enemy King!</li>
