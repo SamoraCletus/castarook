@@ -192,20 +192,36 @@ export const GameUI: React.FC<Props> = ({
         </div>
 
         {/* Top Center: Turn Indicator */}
-        <div style={{
-          ...aoeBoxStyle,
-          background: turn === 'white' ? '#f0d9b5' : '#1a1510',
-          color: turn === 'white' ? '#2a1a0a' : '#d4af37',
-          padding: '12px 40px',
-          borderRadius: '4px',
-          fontSize: '28px',
-          fontWeight: 'bold',
-          textTransform: 'uppercase',
-          letterSpacing: '3px',
-          border: '3px double #d4af37',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}>
-          {turn}'s Command
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{
+            ...aoeBoxStyle,
+            background: turn === 'white' ? '#f0d9b5' : '#1a1510',
+            color: turn === 'white' ? '#2a1a0a' : '#d4af37',
+            padding: '12px 40px',
+            borderRadius: '4px',
+            fontSize: '28px',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '3px',
+            border: '3px double #d4af37',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+            {turn}'s Command
+          </div>
+          <div style={{
+            marginTop: '8px',
+            background: 'rgba(20, 15, 10, 0.8)',
+            border: '1px solid #d4af37',
+            color: '#d4af37',
+            padding: '4px 16px',
+            borderRadius: '12px',
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
+          }}>
+            {isVsAI ? 'Player vs AI' : 'Player vs Player'}
+          </div>
         </div>
         
         {/* Top Right: Menu Button */}
