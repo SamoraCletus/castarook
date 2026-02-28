@@ -23,39 +23,6 @@ export const useChessGame = () => {
   const [whiteColor, setWhiteColor] = useState('#f0d9b5');
   const [blackColor, setBlackColor] = useState('#4a4a4a');
 
-  // --- AI Logic ---
-  useEffect(() => {
-    if (isVsAI && turn === 'black' && !isRolling && !isPaused && !winner && hasStarted && !aiMoveSequence) {
-      // Small delay to simulate "thinking" and let the UI settle
-      const thinkTimer = setTimeout(() => {
-        const move = calculateBestMove(pieces, 'black');
-        if (move) {
-          setAiMoveSequence({ step: 1, move: { startX: move.piece.x, startY: move.piece.y, targetX: move.target.x, targetY: move.target.y } });
-        }
-      }, 800);
-      return () => clearTimeout(thinkTimer);
-    }
-  }, [pieces, turn, isVsAI, isRolling, isPaused, winner, hasStarted, aiMoveSequence]);
-
-  useEffect(() => {
-    if (aiMoveSequence && !isPaused && !winner) {
-      if (aiMoveSequence.step === 1) {
-        const timer = setTimeout(() => {
-          handleSquareClick(aiMoveSequence.move.startX, aiMoveSequence.move.startY);
-          setAiMoveSequence(prev => prev ? { ...prev, step: 2 } : null);
-        }, 300);
-        return () => clearTimeout(timer);
-      } else if (aiMoveSequence.step === 2) {
-        const timer = setTimeout(() => {
-          handleSquareClick(aiMoveSequence.move.targetX, aiMoveSequence.move.targetY);
-          setAiMoveSequence(null);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [aiMoveSequence, isPaused, winner, handleSquareClick]);
-  // --------------
-
   const addLog = (message: string, type: LogEntry['type']) => {
     const newLog: LogEntry = {
       id: Math.random().toString(36).substr(2, 9),
@@ -74,15 +41,17 @@ export const useChessGame = () => {
     setIsRolling(false);
     setIsPaused(false);
     setWinner(null);
-    setHasStarted(true); // Don't show start screen again on reset
+    setHasStarted(false); // Return to main menu
     setLogs([]);
-    addLog('Match Restarted', 'move');
   };
 
   const getPieceAt = (x: number, y: number) => pieces.find(p => p.x === x && p.y === y);
 
   const handleSquareClick = (x: number, y: number) => {
     if (isRolling || isPaused || winner || !hasStarted) return; // Block input during dice roll, pause, game over, or if not started
+    
+    // Block input if it's the AI's turn
+    if (isVsAI && turn === 'black' && !aiMoveSequence) return;
 
     // Clear battle result on next action if it's already shown
     if (battleResult && !isRolling) setBattleResult(null);
@@ -274,6 +243,39 @@ export const useChessGame = () => {
       setSelectedPieceId(null);
     }
   };
+
+  // --- AI Logic ---
+  useEffect(() => {
+    if (isVsAI && turn === 'black' && !isRolling && !isPaused && !winner && hasStarted && !aiMoveSequence && !battleResult) {
+      // Small delay to simulate "thinking" and let the UI settle
+      const thinkTimer = setTimeout(() => {
+        const move = calculateBestMove(pieces, 'black');
+        if (move) {
+          setAiMoveSequence({ step: 1, move: { startX: move.piece.x, startY: move.piece.y, targetX: move.target.x, targetY: move.target.y } });
+        }
+      }, 800);
+      return () => clearTimeout(thinkTimer);
+    }
+  }, [pieces, turn, isVsAI, isRolling, isPaused, winner, hasStarted, aiMoveSequence, battleResult]);
+
+  useEffect(() => {
+    if (aiMoveSequence && !isPaused && !winner) {
+      if (aiMoveSequence.step === 1) {
+        const timer = setTimeout(() => {
+          handleSquareClick(aiMoveSequence.move.startX, aiMoveSequence.move.startY);
+          setAiMoveSequence(prev => prev ? { ...prev, step: 2 } : null);
+        }, 300);
+        return () => clearTimeout(timer);
+      } else if (aiMoveSequence.step === 2) {
+        const timer = setTimeout(() => {
+          handleSquareClick(aiMoveSequence.move.targetX, aiMoveSequence.move.targetY);
+          setAiMoveSequence(null);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [aiMoveSequence, isPaused, winner, handleSquareClick]);
+  // --------------
 
   return {
     pieces,
