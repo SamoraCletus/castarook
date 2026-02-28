@@ -1,16 +1,23 @@
-# ⚔️ CASTAROOK: A Strategic Saga
+# 👑 CASTAROOK: A Strategic Saga
 
-Castarook is an immersive 3D chess game that blends standard chess strategy with D&D-inspired RPG elements. Set in a living, breathing valley featuring dynamic weather, procedural terrain, and a cinematic "Age of Empires" inspired interface.
+**Castarook** is an immersive 3D chess game that blends standard chess strategy with D&D-inspired RPG elements. Set in a living, breathing valley featuring dynamic weather, procedural terrain, and a cinematic "Age of Empires" inspired interface.
 
 ## 📜 The Core Mechanics
 
 Unlike regular chess, pieces in this saga don't always perish in a single strike. Every capture attempt initiates a **Battle Phase**.
 
-### 🎲 Combat System
-*   **Dice Rolls:** When one piece attacks another, both the Attacker and the Defender roll a **D20**.
-*   **Attributes:** 
-    *   **Attacker Total:** `D20 Roll + Veteran Kills`
-    *   **Defender Total:** `D20 Roll + Walls Defended`
+### 🎲 Combat System & Dice
+When one piece attacks another, combat is determined by the fate of the dice.
+*   **Piece-Specific Dice:** Each unit rolls a unique die based on its power:
+    *   **Pawn:** D6
+    *   **Knight:** D10
+    *   **Bishop:** D12
+    *   **Rook:** D15
+    *   **Queen:** D18
+    *   **King:** D20
+*   **Veteran Attributes (Max +5):** 
+    *   **Attacker Total:** `Die Roll + Veteran Kills`
+    *   **Defender Total:** `Die Roll + Walls Defended`
 *   **Damage Calculation:** The difference between the two totals is dealt as damage to the loser's health.
 *   **Health Points (HP):**
     *   **Pawn:** 10 HP
@@ -20,6 +27,9 @@ Unlike regular chess, pieces in this saga don't always perish in a single strike
     *   **King:** 50 HP
 *   **Survival:** If a unit takes damage but remains above 0 HP, it stays on its square. A capture only occurs when a unit's health is fully depleted.
 
+### 🤖 Singleplayer (Player vs AI)
+*   **Greedy AI:** You can challenge a custom-built AI opponent in the main menu. The AI calculates "Expected Value" based on piece values, current HP, and combat probability (accounting for dice sides and stat bonuses) to execute ruthless—though sometimes unpredictable—attacks.
+
 ### 👑 Special Rules
 *   **Pawn Promotion:** Pawns reaching the far edge are automatically promoted to **Queens**, gaining full HP and range.
 *   **Castling:** Perform a strategic swap between your King and Rook if neither has moved and the path is clear.
@@ -27,14 +37,15 @@ Unlike regular chess, pieces in this saga don't always perish in a single strike
 
 ## 🌲 Immersive Environment
 
-The battlefield is situated in a rich, low-poly world:
-*   **Procedural Scenery:** Hills, valleys, and a winding river surround the board.
-*   **Living World:** Animated trees, swaying grass, and wandering rabbits/horses react to a global wind system.
-*   **Day/Night Cycle:** Toggle between a bright "Sunrise" and a flickering "Twilight" mode featuring firecamps and stars.
-*   **Dynamic Wind:** Adjust the wind power from a gentle breeze to an aggressive storm in the settings.
+The battlefield is situated in a rich, low-poly procedural world:
+*   **The Stone Plaza:** A deep-foundation, tiered stone stage where the battle takes place.
+*   **Procedural Scenery:** Varied elevations, including rolling hills, the "Western Mound," the "Eastern Plateau," and a grand Stone Bridge spanning a carving river.
+*   **Living World:** Grounded, animated trees, swaying grass, and wandering rabbits react to a global wind system.
+*   **Day/Night Cycle:** Toggle between a bright "Sunrise" and a flickering "Twilight" mode featuring firecamps and dynamic lighting.
 
 ## 🎨 Aesthetic & UI
-*   **Age of Empires Style:** A cinematic HUD featuring gold-etched borders, serif typography, and a "War Chronicles" log.
+*   **Cinematic HUD:** Features gold-etched borders, a "War Chronicles" log, interactive battle pop-ups, and a dynamic Game Mode indicator.
+*   **Camera Controls:** Freely observe the board (Left Click = Orbit, Right Click = Pan, Scroll = Zoom, 'R' or Middle Click = Reset View).
 *   **3D Animations:** Units perform lunging strikes during combat and physically fall over/sink into the dirt upon death.
 *   **Customization:** Change board styles (Wood, Stone, Marble) and customize your army's colors via the Strategic Menu.
 
@@ -66,4 +77,4 @@ The battlefield is situated in a rich, low-poly world:
 *   **Vite** - Build Tool
 
 ---
-Built for the **Workhammer Suite**. Roll for Initiative!
+Created by Fezcode. Roll for Initiative!
