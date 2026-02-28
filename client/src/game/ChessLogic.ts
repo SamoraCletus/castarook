@@ -10,7 +10,7 @@ export const setupBoard = (): Piece[] => {
       case 'bishop': return 20;
       case 'rook': return 30;
       case 'queen': return 40;
-      case 'king': return 50;
+      case 'king': return 15;
       default: return 10;
     }
   };

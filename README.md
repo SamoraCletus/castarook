@@ -24,7 +24,7 @@ When one piece attacks another, combat is determined by the fate of the dice.
     *   **Knight / Bishop:** 20 HP
     *   **Rook:** 30 HP
     *   **Queen:** 40 HP
-    *   **King:** 50 HP
+    *   **King:** 15 HP
 *   **Survival:** If a unit takes damage but remains above 0 HP, it stays on its square. A capture only occurs when a unit's health is fully depleted.
 
 ### 🤖 Singleplayer (Player vs AI)
