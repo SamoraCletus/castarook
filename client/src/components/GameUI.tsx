@@ -225,6 +225,13 @@ export const GameUI: React.FC<Props> = ({
                     <li>Castling: King and Rook may pivot if unmoved.</li>
                   </ul>
                 </li>
+                <li><strong>Observation:</strong>
+                  <ul style={{ color: '#d4af37' }}>
+                    <li>Orbit: Left Click + Drag</li>
+                    <li>Pan: Right Click + Drag</li>
+                    <li>Zoom: Scroll Wheel</li>
+                  </ul>
+                </li>
                 <li><strong>Victory Conditions:</strong> No checkmate exists in this saga. You must execute the enemy King!</li>
               </ul>
             </div>
