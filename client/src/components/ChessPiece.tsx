@@ -25,10 +25,19 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick, custom
   const highlightColor = isSelected ? '#ffeb3b' : hovered ? '#81c784' : teamBaseColor;
   const stripeColor = piece.secondaryColor || (piece.color === 'white' ? '#d4af37' : '#ff5252');
 
+  const ringRef = useRef<THREE.Mesh>(null);
+
   useFrame((state) => {
     if (!groupRef.current) return;
 
     const t = state.clock.getElapsedTime();
+
+    // Pulse vulnerability ring
+    if (ringRef.current && piece.isDebuffed) {
+      const pulse = 0.8 + Math.sin(t * 5) * 0.2;
+      ringRef.current.scale.set(pulse, pulse, pulse);
+      ringRef.current.material.opacity = 0.4 + Math.sin(t * 5) * 0.2;
+    }
 
     if (piece.status === 'attacking') {
       // Lunge animation
@@ -172,6 +181,14 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick, custom
       onPointerOut={() => setHovered(false)}
     >
       {getGeometry()}
+
+      {/* Vulnerability Halo (Red Pulsing Ring) */}
+      {piece.isDebuffed && (
+        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
+          <ringGeometry args={[0.4, 0.6, 32]} />
+          <meshBasicMaterial color="#ff1744" transparent opacity={0.6} side={THREE.DoubleSide} />
+        </mesh>
+      )}
 
       {/* Health Bar Billboard */}
       <Billboard position={[0, 2.5, 0]} follow={true}>
