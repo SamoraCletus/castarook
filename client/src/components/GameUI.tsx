@@ -148,8 +148,28 @@ export const GameUI: React.FC<Props> = ({
 
               <button onClick={() => setIsTutorialOpen(true)} style={{ ...menuButtonStyle, background: 'rgba(0,0,0,0.6)', color: '#d4af37' }}>Learn the Rules</button>
             </div>
-            <div style={{ width: '200px', height: '1px', background: 'rgba(212, 175, 55, 0.3)', margin: '40px auto 0 auto' }}></div>
-            <p style={{ color: '#666', fontSize: '12px', marginTop: '10px', textTransform: 'uppercase', letterSpacing: '2px' }}>Built for the Workhammer Suite</p>
+            <div style={{ width: '200px', height: '1px', background: 'rgba(212, 175, 55, 0.3)', margin: '40px auto 20px auto' }}></div>
+            <button 
+              onClick={() => window.open('https://fezcode.com', '_blank')} 
+              style={{ 
+                background: 'none', 
+                border: '1px solid #d4af37', 
+                color: '#d4af37', 
+                padding: '8px 16px', 
+                fontSize: '12px', 
+                cursor: 'pointer',
+                fontFamily: 'serif',
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                borderRadius: '4px',
+                transition: 'all 0.2s',
+                pointerEvents: 'auto'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(212, 175, 55, 0.1)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'none'; }}
+            >
+              Created by Fezcode
+            </button>
           </div>
         </div>
       )}
