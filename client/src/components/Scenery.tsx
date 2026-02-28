@@ -5,14 +5,61 @@ import * as THREE from 'three';
 
 const getTerrainHeight = (x: number, z: number) => {
   const distFromCenter = Math.sqrt(x*x + z*z);
-  let y = 0;
-  if (distFromCenter > 15) {
-    y = (Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2) + (Math.sin(x * 0.05) * 1.5);
-    const riverCenter = 30 + Math.sin(z * 0.05) * 15;
-    const distToRiver = Math.abs(x - riverCenter);
-    if (distToRiver < 12) y -= (12 - distToRiver) * 0.5;
+  
+  // Base rolling hills noise
+  let y = (Math.sin(x * 0.08) * Math.cos(z * 0.08) * 2.5) + (Math.sin(x * 0.04) * 2);
+  
+  // Localized hill clusters around the plaza area
+  const localHills = (Math.sin(x * 0.25) * Math.cos(z * 0.25) * 2.2);
+  if (distFromCenter > 20) {
+    y += localHills * Math.min(1, (distFromCenter - 20) / 10);
   }
+
+  // Western Mound
+  const distToHill1 = Math.sqrt(Math.pow(x + 40, 2) + Math.pow(z + 40, 2));
+  if (distToHill1 < 25) {
+    y += Math.pow(Math.cos((distToHill1 / 25) * Math.PI / 2), 2) * 7;
+  }
+
+  // Eastern Plateau
+  const distToPlateau = Math.sqrt(Math.pow(x - 45, 2) + Math.pow(z - 35, 2));
+  if (distToPlateau < 30) {
+    y += Math.pow(Math.cos((distToPlateau / 30) * Math.PI / 2), 0.5) * 4.5;
+  }
+
+  // Southern Ridges
+  if (z > 40) {
+    y += Math.sin(x * 0.2) * 2 * Math.min(1, (z - 40) / 20);
+  }
+
+  // Flatten the central area for the Plaza
+  const flatRadius = 18;
+  const smoothRadius = 32; 
+  if (distFromCenter < smoothRadius) {
+    const weight = distFromCenter < flatRadius ? 0 : (distFromCenter - flatRadius) / (smoothRadius - flatRadius);
+    const smoothWeight = weight < 0.5 ? 2 * weight * weight : 1 - Math.pow(-2 * weight + 2, 2) / 2;
+    y = y * smoothWeight;
+  }
+
+  // River 1 (Right side)
+  const river1Center = 45 + Math.sin(z * 0.05) * 12;
+  const distToRiver1 = Math.abs(x - river1Center);
+  if (distToRiver1 < 15) {
+    const riverDepth = (15 - distToRiver1) * 1.5;
+    const plazaProtector = Math.min(1, Math.max(0, (distFromCenter - 16) / 12));
+    y -= riverDepth * plazaProtector;
+  }
+
   return y - 0.55; 
+};
+
+// Helper to get the actual surface height including plaza elevation
+const getSurfaceHeight = (x: number, z: number) => {
+  const distFromCenter = Math.sqrt(x*x + z*z);
+  if (distFromCenter < 10.5) return -0.3; // Top of Main Plaza
+  if (distFromCenter < 12) return -0.45;  // Top of Foundation tier
+  // Sink vegetation slightly (-0.05) into ground to avoid floating due to mesh discretization
+  return getTerrainHeight(x, z) - 0.05;
 };
 
 const Tree = ({ position, windStrength = 1.0, seed = Math.random() }: { position: [number, number, number], windStrength?: number, seed?: number }) => {
@@ -38,7 +85,7 @@ const Tree = ({ position, windStrength = 1.0, seed = Math.random() }: { position
   });
 
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]}>
       <mesh position={[0, height * 0.3, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.15, 0.25, height * 0.6, 8]} />
         <meshStandardMaterial color="#4d2c19" roughness={0.9} />
@@ -69,7 +116,7 @@ const Tree = ({ position, windStrength = 1.0, seed = Math.random() }: { position
 
 const Bush = ({ position, scale = 1 }: { position: [number, number, number], scale?: number }) => {
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]} scale={scale}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]} scale={scale}>
       <mesh position={[0, 0.3, 0]} castShadow receiveShadow><sphereGeometry args={[0.5, 8, 8]} /><meshStandardMaterial color="#2e7d32" roughness={0.9} /></mesh>
       <mesh position={[0.3, 0.2, 0.2]} castShadow receiveShadow><sphereGeometry args={[0.4, 8, 8]} /><meshStandardMaterial color="#1b5e20" roughness={0.9} /></mesh>
       <mesh position={[-0.3, 0.2, -0.2]} castShadow receiveShadow><sphereGeometry args={[0.4, 8, 8]} /><meshStandardMaterial color="#388e3c" roughness={0.9} /></mesh>
@@ -87,7 +134,7 @@ const Grass = ({ position, seed = Math.random() }: { position: [number, number, 
     }
   });
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]} ref={ref}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]} ref={ref}>
       <mesh position={[0, 0.1, 0]} rotation={[0, seed * Math.PI, 0]}><planeGeometry args={[0.2, 0.4]} /><meshStandardMaterial color="#4d7a36" side={THREE.DoubleSide} transparent alphaTest={0.5} /></mesh>
       <mesh position={[0, 0.1, 0]} rotation={[0, seed * Math.PI + Math.PI / 2, 0]}><planeGeometry args={[0.2, 0.4]} /><meshStandardMaterial color="#4d7a36" side={THREE.DoubleSide} transparent alphaTest={0.5} /></mesh>
     </group>
@@ -96,7 +143,7 @@ const Grass = ({ position, seed = Math.random() }: { position: [number, number, 
 
 const Flower = ({ position, color = "red" }: { position: [number, number, number], color?: string }) => {
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]}>
       <mesh position={[0, 0.1, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.02, 0.02, 0.3]} />
         <meshStandardMaterial color="#4caf50" />
@@ -120,7 +167,7 @@ const Rabbit = ({ position, seed = Math.random() }: { position: [number, number,
       const hopHeight = Math.max(0, Math.sin(t * 4) * 0.5);
       const curX = startX + Math.sin(t * 0.5) * 2;
       const curZ = startZ + Math.cos(t * 0.5) * 2;
-      ref.current.position.set(curX, getTerrainHeight(curX, curZ) + hopHeight, curZ);
+      ref.current.position.set(curX, getSurfaceHeight(curX, curZ) + hopHeight, curZ);
       ref.current.rotation.y = t * 0.5 + Math.PI / 2;
     }
   });
@@ -145,12 +192,12 @@ const Palisade = ({ position, rotationY = 0, length = 5 }: { position: [number, 
       </group>
     );
   }
-  return <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]}>{logs}</group>;
+  return <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]}>{logs}</group>;
 };
 
 const Mountain = ({ position, scale = [15, 20, 15], color = "#4a4a4a" }: { position: [number, number, number], scale?: [number, number, number], color?: string }) => {
   return (
-    <mesh position={[position[0], getTerrainHeight(position[0], position[2]) + scale[1] * 0.4, position[2]]} scale={scale} castShadow receiveShadow>
+    <mesh position={[position[0], getSurfaceHeight(position[0], position[2]) + scale[1] * 0.4, position[2]]} scale={scale} castShadow receiveShadow>
       <icosahedronGeometry args={[1, 1]} />
       <meshStandardMaterial color={color} roughness={0.9} flatShading />
     </mesh>
@@ -159,7 +206,7 @@ const Mountain = ({ position, scale = [15, 20, 15], color = "#4a4a4a" }: { posit
 
 const Cottage = ({ position, rotationY = 0 }: { position: [number, number, number], rotationY?: number }) => {
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]}>
       <mesh position={[0, 1, 0]} castShadow receiveShadow><boxGeometry args={[3, 2, 2.5]} /><meshStandardMaterial color="#8d6e63" roughness={0.8} /></mesh>
       <mesh position={[0, 2.5, 0]} rotation={[0, Math.PI / 4, 0]} castShadow receiveShadow><coneGeometry args={[2.5, 1.5, 4]} /><meshStandardMaterial color="#5d4037" roughness={0.7} /></mesh>
       <mesh position={[0, 0.6, 1.26]}><planeGeometry args={[0.6, 1]} /><meshStandardMaterial color="#3e2723" /></mesh>
@@ -171,7 +218,7 @@ const Cottage = ({ position, rotationY = 0 }: { position: [number, number, numbe
 
 const Castle = ({ position, rotationY = 0, scale = 1 }: { position: [number, number, number], rotationY?: number, scale?: number }) => {
   return (
-    <group position={[position[0], getTerrainHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]} scale={scale}>
+    <group position={[position[0], getSurfaceHeight(position[0], position[2]), position[2]]} rotation={[0, rotationY, 0]} scale={scale}>
       <mesh position={[0, 3, 0]} castShadow receiveShadow><boxGeometry args={[6, 6, 6]} /><meshStandardMaterial color="#78909c" roughness={0.6} /></mesh>
       {[ [-3, 4, -3], [3, 4, -3], [-3, 4, 3], [3, 4, 3] ].map((pos, i) => (
         <group key={i} position={pos as [number, number, number]}>
@@ -203,27 +250,38 @@ const River = ({ windStrength = 1.0 }: { windStrength?: number }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const riverGeom = useMemo(() => {
     const segments = 100;
-    const width = 12;
+    const width = 15;
     const length = 200;
     const geometry = new THREE.PlaneGeometry(width, length, 1, segments);
     const pos = geometry.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const z = pos.getY(i);
-      const xOffset = Math.sin(z * 0.05) * 15;
+      // Synchronize with terrain's riverCenter: 45 + Math.sin(z * 0.05) * 12
+      const xOffset = Math.sin(z * 0.05) * 12;
       pos.setX(i, x + xOffset);
-      pos.setZ(i, getTerrainHeight(30 + xOffset, z) + 0.5 + 0.55);
+      
+      // Water surface level should be below the terrain top but above the bed
+      // World Y will be MeshY + pos.Z. 
+      // We want World Y to be around -1.2 in the deep parts
+      pos.setZ(i, -0.6 + 0.55); 
     }
     geometry.computeVertexNormals();
     return geometry;
   }, []);
+  
   useFrame((state) => {
     if (meshRef.current) {
       const time = state.clock.getElapsedTime();
-      meshRef.current.position.y = -0.1 + Math.sin(time * 0.5) * 0.02 * windStrength;
+      meshRef.current.position.y = -0.55 + Math.sin(time * 0.5) * 0.02 * windStrength;
     }
   });
-  return <mesh geometry={riverGeom} ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[30, -0.55, 0]} receiveShadow><meshStandardMaterial color="#0288d1" transparent opacity={0.6} roughness={0.1} metalness={0.9} emissive="#01579b" emissiveIntensity={0.5} /></mesh>;
+
+  return (
+    <mesh geometry={riverGeom} ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[45, -0.55, 0]} receiveShadow>
+      <meshStandardMaterial color="#0288d1" transparent opacity={0.7} roughness={0.1} metalness={0.9} emissive="#01579b" emissiveIntensity={0.5} />
+    </mesh>
+  );
 };
 
 export const HorseModel = ({ color = "#8d6e63", scale = 1, animate = true }: { color?: string, scale?: number, animate?: boolean }) => {
@@ -283,7 +341,7 @@ const Banner = ({ position, color = "red" }: { position: [number, number, number
 };
 
 const DecorativeItems = ({ position, rotationY }: { position: [number, number, number], rotationY: number }) => {
-  const y = getTerrainHeight(position[0], position[2]);
+  const y = getSurfaceHeight(position[0], position[2]);
   return (
     <group position={[position[0], y, position[2]]} rotation={[0, rotationY, 0]}>
       <group position={[0.5, 0.1, 0.2]} rotation={[Math.PI / 2, 0.2, 0]}>
@@ -306,7 +364,7 @@ const Firecamp = ({ position }: { position: [number, number, number] }) => {
   useFrame((state) => {
     if (lightRef.current) lightRef.current.intensity = 2 + Math.sin(state.clock.getElapsedTime() * 10) * 0.5;
   });
-  const y = getTerrainHeight(position[0], position[2]);
+  const y = getSurfaceHeight(position[0], position[2]);
   return (
     <group position={[position[0], y, position[2]]}>
       <mesh rotation={[0, 0, Math.PI / 2]} position={[0, 0.1, 0.2]} castShadow><cylinderGeometry args={[0.05, 0.05, 0.6, 6]} /><meshStandardMaterial color="#331a00" /></mesh>
@@ -335,24 +393,31 @@ const StonePlaza = ({ isNight }: { isNight: boolean }) => {
   const plazaColor = isNight ? "#1a1a1a" : "#4a4a4a";
   const rimColor = isNight ? "#111" : "#333";
   
+  // Use polygonOffset to help Three.js resolve depth for overlapping planes
+  const stoneMaterialProps = {
+    polygonOffset: true,
+    polygonOffsetFactor: -1,
+    polygonOffsetUnits: -1,
+  };
+  
   return (
     <group position={[0, -0.55, 0]}>
       {/* Foundation - Tiered stone slabs - Deep foundation to prevent floating */}
       <mesh position={[0, -0.5, 0]} receiveShadow>
         <cylinderGeometry args={[12, 13, 1.2, 32]} />
-        <meshStandardMaterial color={plazaColor} roughness={0.9} />
+        <meshStandardMaterial color={plazaColor} roughness={0.9} {...stoneMaterialProps} />
       </mesh>
       
       {/* Main Elevated Plaza */}
       <mesh position={[0, 0.15, 0]} receiveShadow>
         <cylinderGeometry args={[10.5, 11, 0.2, 32]} />
-        <meshStandardMaterial color={plazaColor} roughness={0.8} />
+        <meshStandardMaterial color={plazaColor} roughness={0.8} {...stoneMaterialProps} />
       </mesh>
 
       {/* Decorative Rim */}
       <mesh position={[0, 0.15, 0]} receiveShadow rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[11, 0.1, 8, 48]} />
-        <meshStandardMaterial color={rimColor} metalness={0.2} roughness={0.6} />
+        <meshStandardMaterial color={rimColor} metalness={0.2} roughness={0.6} {...stoneMaterialProps} />
       </mesh>
 
       {/* Corner Pillars/Stones */}
@@ -360,7 +425,7 @@ const StonePlaza = ({ isNight }: { isNight: boolean }) => {
         <group key={i} position={[Math.cos(angle) * 11.5, 0.3, Math.sin(angle) * 11.5]} rotation={[0, -angle, 0]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[1.5, 0.8, 1.5]} />
-            <meshStandardMaterial color={plazaColor} roughness={0.7} />
+            <meshStandardMaterial color={plazaColor} roughness={0.7} {...stoneMaterialProps} />
           </mesh>
           <mesh position={[0, 0.5, 0]} castShadow>
             <sphereGeometry args={[0.3, 8, 8]} />
@@ -374,16 +439,17 @@ const StonePlaza = ({ isNight }: { isNight: boolean }) => {
         const angle = (i / 16) * Math.PI * 2 + Math.random() * 0.2;
         const dist = 13.5 + Math.random() * 2.5;
         const scale = 0.5 + Math.random() * 1.5;
+        // Lifted more (+0.75) and slightly thickened to avoid any z-fighting with the grass
         return (
           <mesh 
             key={`slab-${i}`} 
-            position={[Math.cos(angle) * dist, getTerrainHeight(Math.cos(angle) * dist, Math.sin(angle) * dist) + 0.6, Math.sin(angle) * dist]} 
+            position={[Math.cos(angle) * dist, getTerrainHeight(Math.cos(angle) * dist, Math.sin(angle) * dist) + 0.75, Math.sin(angle) * dist]} 
             rotation={[-Math.PI / 2, 0, angle]}
-            scale={[scale, scale, 1]}
+            scale={[scale, scale, 1.5]}
             receiveShadow
           >
             <boxGeometry args={[1, 1, 0.1]} />
-            <meshStandardMaterial color={plazaColor} roughness={0.9} />
+            <meshStandardMaterial color={plazaColor} roughness={0.9} {...stoneMaterialProps} />
           </mesh>
         );
       })}
@@ -391,15 +457,77 @@ const StonePlaza = ({ isNight }: { isNight: boolean }) => {
       {/* Steps leading up to the board area */}
       {[0, Math.PI].map((angle, i) => (
         <group key={`steps-${i}`} rotation={[0, angle + Math.PI/2, 0]}>
-          <mesh position={[0, 0.05, 11.5]} receiveShadow>
+          <mesh position={[0, 0.15, 11.5]} receiveShadow>
             <boxGeometry args={[4, 0.1, 2]} />
-            <meshStandardMaterial color={plazaColor} />
+            <meshStandardMaterial color={plazaColor} {...stoneMaterialProps} />
           </mesh>
-          <mesh position={[0, -0.05, 13]} receiveShadow>
+          <mesh position={[0, 0.05, 13]} receiveShadow>
             <boxGeometry args={[5, 0.1, 2]} />
-            <meshStandardMaterial color={plazaColor} />
+            <meshStandardMaterial color={plazaColor} {...stoneMaterialProps} />
           </mesh>
         </group>
+      ))}
+    </group>
+  );
+};
+
+const MountainStream = ({ windStrength = 1.0 }: { windStrength?: number }) => {
+  const meshRef = useRef<THREE.Mesh>(null);
+  const riverGeom = useMemo(() => {
+    const segments = 100;
+    const width = 12;
+    const length = 200;
+    const geometry = new THREE.PlaneGeometry(width, length, 1, segments);
+    const pos = geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const z = pos.getY(i);
+      // Synchronize with terrain's river2Center: -50 + Math.cos(z * 0.06) * 8
+      const xOffset = Math.cos(z * 0.06) * 8;
+      pos.setX(i, x + xOffset);
+      pos.setZ(i, -0.6 + 0.55); 
+    }
+    geometry.computeVertexNormals();
+    return geometry;
+  }, []);
+  
+  useFrame((state) => {
+    if (meshRef.current) {
+      const time = state.clock.getElapsedTime();
+      meshRef.current.position.y = -0.55 + Math.sin(time * 0.4) * 0.02 * windStrength;
+    }
+  });
+
+  return (
+    <mesh geometry={riverGeom} ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} position={[-50, -0.55, 0]} receiveShadow>
+      <meshStandardMaterial color="#4fc3f7" transparent opacity={0.6} roughness={0.1} metalness={0.8} emissive="#0288d1" emissiveIntensity={0.3} />
+    </mesh>
+  );
+};
+
+const StoneBridge = ({ position, rotationY = 0, length = 22 }: { position: [number, number, number], rotationY?: number, length?: number }) => {
+  return (
+    <group position={position} rotation={[0, rotationY, 0]}>
+      {/* Main Path */}
+      <mesh receiveShadow castShadow>
+        <boxGeometry args={[length, 1.2, 8]} />
+        <meshStandardMaterial color="#555" roughness={0.8} />
+      </mesh>
+      {/* Side Rails */}
+      <mesh position={[0, 1.0, 3.8]} receiveShadow castShadow>
+        <boxGeometry args={[length, 0.8, 0.5]} />
+        <meshStandardMaterial color="#444" />
+      </mesh>
+      <mesh position={[0, 1.0, -3.8]} receiveShadow castShadow>
+        <boxGeometry args={[length, 0.8, 0.5]} />
+        <meshStandardMaterial color="#444" />
+      </mesh>
+      {/* Support Pillars */}
+      {[-0.3, 0.3].map((offset, i) => (
+        <mesh key={i} position={[length * offset, -2, 0]} receiveShadow castShadow>
+          <boxGeometry args={[4, 6, 7.8]} />
+          <meshStandardMaterial color="#333" />
+        </mesh>
       ))}
     </group>
   );
@@ -408,9 +536,10 @@ const StonePlaza = ({ isNight }: { isNight: boolean }) => {
 export const Scenery = ({ isNight, windStrength = 1.0 }: { isNight: boolean, windStrength?: number }) => {
   const trees = useMemo(() => {
     const list = [];
-    for (let i = 0; i < 25; i++) {
+    // More trees!
+    for (let i = 0; i < 45; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const radius = 15 + Math.random() * 30;
+      const radius = 22 + Math.random() * 35;
       list.push({ pos: [Math.cos(angle) * radius, 0, Math.sin(angle) * radius] as [number, number, number], seed: Math.random() });
     }
     return list;
@@ -473,6 +602,8 @@ export const Scenery = ({ isNight, windStrength = 1.0 }: { isNight: boolean, win
       <River windStrength={windStrength} />
 
       <StonePlaza isNight={isNight} />
+
+      <StoneBridge position={[45, -0.2, 0]} rotationY={Math.PI / 8} length={28} />
 
       {mountains.map((m, i) => <Mountain key={`mtn-${i}`} position={m.pos} scale={m.scale} color={m.color} />)}
 
