@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Piece, BattleResult, LogEntry } from '../types';
+import packageJson from '../../package.json';
 
 interface Props {
   turn: string;
@@ -135,15 +136,16 @@ export const GameUI: React.FC<Props> = ({
           }}>
             <div style={{ width: '100px', height: '2px', background: '#d4af37', margin: '0 auto 20px auto', boxShadow: '0 0 10px #d4af37' }}></div>
             <h2 style={{ color: '#d4af37', fontSize: '24px', margin: 0, textTransform: 'uppercase', letterSpacing: '6px', opacity: 0.8 }}>A Strategic Saga</h2>
-            <h1 style={{ color: '#fff', fontSize: '100px', margin: '5px 0 30px 0', textTransform: 'uppercase', letterSpacing: '12px', fontWeight: 'bold', textShadow: '0 0 20px rgba(212, 175, 55, 0.5), 2px 2px 0px #000' }}>
+            <h1 style={{ color: '#fff', fontSize: '100px', margin: '5px 0 0 0', textTransform: 'uppercase', letterSpacing: '12px', fontWeight: 'bold', textShadow: '0 0 20px rgba(212, 175, 55, 0.5), 2px 2px 0px #000' }}>
               RPG<span style={{ color: '#d4af37' }}>CHESS</span>
             </h1>
+            <div style={{ color: '#aaa', fontSize: '14px', marginBottom: '30px', letterSpacing: '2px' }}>v{packageJson.version}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '320px', margin: '0 auto' }}>
               <button onClick={() => { setIsVsAI(false); setHasStarted(true); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', border: '2px solid #fff', fontSize: '20px', fontWeight: 'bold', padding: '15px' }}>Player vs Player</button>
               
               <div>
                 <button onClick={() => { setIsVsAI(true); setHasStarted(true); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #546e7a, #37474f)', color: '#fff', border: '2px solid #b0bec5', fontSize: '20px', fontWeight: 'bold', padding: '15px', marginBottom: '5px' }}>Player vs AI (Beta)</button>
-                <div style={{ color: '#ffb74d', fontSize: '12px', fontStyle: 'italic', letterSpacing: '1px' }}>Warning: The AI is ruthless, but unpredictable.</div>
+                <div style={{ color: '#ffb74d', fontSize: '12px', fontStyle: 'italic', letterSpacing: '1px', lineHeight: '1.4' }}>Warning: The AI uses a greedy algorithm and may behave unpredictably or foolishly.</div>
               </div>
 
               <button onClick={() => setIsTutorialOpen(true)} style={{ ...menuButtonStyle, background: 'rgba(0,0,0,0.6)', color: '#d4af37' }}>Learn the Rules</button>
