@@ -61,6 +61,7 @@ interface Props {
   const [isCreditsOpen, setIsCreditsOpen] = React.useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = React.useState(false);
   const [showAiColorSelect, setShowAiColorSelect] = React.useState(false);
+  const [hideWinnerModal, setHideWinnerModal] = React.useState(false);
   const [changelogData, setChangelogData] = React.useState<any[]>([]);
 
   React.useEffect(() => {
@@ -284,14 +285,14 @@ interface Props {
         <div style={{ minWidth: '180px', display: 'flex', justifyContent: 'flex-end' }}>
           <button 
             onClick={() => { setIsPaused(true); playSound('menu'); }}
-            disabled={!!winner}
+            disabled={!!winner && !hideWinnerModal}
             style={{
               ...menuButtonStyle,
               width: 'auto',
               padding: '10px 25px',
               fontSize: '16px',
               margin: 0,
-              opacity: winner ? 0.5 : 1,
+              opacity: (!!winner && !hideWinnerModal) ? 0.5 : 1,
               pointerEvents: 'auto'
             }}
           >
@@ -446,7 +447,7 @@ interface Props {
       )}
 
       {/* Game Over Overlay */}
-      {winner && (
+      {winner && !isPaused && !hideWinnerModal && (
         <div style={{
           position: 'absolute',
           top: 0,
@@ -477,9 +478,14 @@ interface Props {
             <p style={{ fontSize: '24px', margin: '0 0 40px 0', opacity: 0.8, fontStyle: 'italic' }}>
               The saga concludes. The {winner} throne stands supreme.
             </p>
-            <button onClick={() => { resetGame(); playSound('menu'); }} style={{ ...menuButtonStyle, background: '#2a1a0a', color: '#d4af37', padding: '20px', fontSize: '24px', fontWeight: 'bold' }}>
-              Begin a New Chapter
-            </button>
+            <div style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}>
+              <button onClick={() => { setHideWinnerModal(true); playSound('menu'); }} style={{ ...menuButtonStyle, background: 'rgba(0,0,0,0.5)', color: winner === 'white' ? '#2a1a0a' : '#d4af37', padding: '15px 30px', fontSize: '20px', fontWeight: 'bold' }}>
+                View Scene
+              </button>
+              <button onClick={() => { setHideWinnerModal(false); resetGame(); playSound('menu'); }} style={{ ...menuButtonStyle, background: '#2a1a0a', color: '#d4af37', padding: '15px 30px', fontSize: '20px', fontWeight: 'bold' }}>
+                Begin a New Chapter
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -505,7 +511,7 @@ interface Props {
             
             <button onClick={() => { setIsPaused(false); playSound('menu'); }} style={menuButtonStyle}>Resume Campaign</button>
             <button onClick={() => { setIsTutorialOpen(true); setIsPaused(false); playSound('menu'); }} style={menuButtonStyle}>The Art of War (Help)</button>
-            <button onClick={() => { resetGame(); playSound('menu'); }} style={{ ...menuButtonStyle, color: '#ff5252' }}>Abandon Match</button>
+            <button onClick={() => { setHideWinnerModal(false); resetGame(); playSound('menu'); }} style={{ ...menuButtonStyle, color: '#ff5252' }}>{winner ? 'Begin a New Chapter' : 'Abandon Match'}</button>
             <button onClick={() => { setIsNight(!isNight); playSound('menu'); }} style={{ ...menuButtonStyle, background: isNight ? '#2a1a0a' : '#d4af37', color: isNight ? '#d4af37' : '#000' }}>
               Set to {isNight ? 'Sunrise' : 'Twilight'}
             </button>
