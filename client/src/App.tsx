@@ -58,7 +58,8 @@ function App() {
     boardStyle, windStrength, whiteColor, blackColor,
     setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
     setHasStarted, setIsNight, setIsPaused, setFogNear, setFogFar,
-    resetGame, handleSquareClick, setBattleResult, isVsAI, setIsVsAI 
+    resetGame, handleSquareClick, handleOnagerClick, setBattleResult, isVsAI, setIsVsAI,
+    whiteSiegeUsed, blackSiegeUsed, isSiegeFiring, fireSiege, selectedOnagerColor
   } = useChessGame();
 
   const selectedPiece = useMemo(() => 
@@ -100,11 +101,25 @@ function App() {
         <CameraHandler controlsRef={controlsRef} />
 
         <group>
-          <Scenery isNight={isNight} windStrength={windStrength} />
+          <Scenery 
+            isNight={isNight} 
+            windStrength={windStrength}
+            whiteSiegeUsed={whiteSiegeUsed}
+            blackSiegeUsed={blackSiegeUsed}
+            selectedOnagerColor={selectedOnagerColor}
+            whiteColor={whiteColor}
+            blackColor={blackColor}
+            onOnagerClick={handleOnagerClick}
+          />
           <ChessBoard 
             pieces={pieces} 
             selectedPieceId={selectedPieceId} 
             validMoves={validMoves} 
+            highlightSquares={selectedOnagerColor ? 
+              pieces.filter(p => p.color !== selectedOnagerColor && (selectedOnagerColor === 'white' ? p.y <= 3 : p.y >= 4)).map(p => ({ x: p.x, y: p.y }))
+              : []
+            }
+            highlightColor={selectedOnagerColor ? "#f44336" : undefined}
             onSquareClick={handleSquareClick} 
             boardStyle={boardStyle}
           />
@@ -120,7 +135,7 @@ function App() {
           ))}
         </group>
 
-        <CombatEffect battleResult={battleResult} isRolling={isRolling} />
+        <CombatEffect battleResult={battleResult} isRolling={isRolling} isSiegeFiring={isSiegeFiring} />
 
         {(isRolling || battleResult) && battleResult && (
            <DiceRoll 
@@ -131,6 +146,7 @@ function App() {
              defenderStats={battleResult.defenderStats}
              defenderDice={battleResult.defenderDice}
              defenderDebuff={battleResult.defenderDebuff}
+             isSiege={battleResult.isSiege}
              isRolling={isRolling} 
            />
         )}
@@ -174,6 +190,9 @@ function App() {
         setBattleResult={setBattleResult}
         isVsAI={isVsAI}
         setIsVsAI={setIsVsAI}
+        whiteSiegeUsed={whiteSiegeUsed}
+        blackSiegeUsed={blackSiegeUsed}
+        fireSiege={fireSiege}
       />
     </div>
   );

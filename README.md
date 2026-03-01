@@ -32,6 +32,10 @@ When one piece attacks another, combat is determined by the fate of the dice.
 *   **Greedy AI:** You can challenge a custom-built AI opponent in the main menu. The AI calculates "Expected Value" based on piece values, current HP, and combat probability (accounting for dice sides and stat bonuses) to execute ruthless—though sometimes unpredictable—attacks.
 
 ### 👑 Special Rules
+*   **Siege Weapons (Onagers):** Each player has a one-time use Onager stationed behind their base.
+    *   **Area of Effect:** Attacks the first 4 rows in front of the base (Rows 1-4 for White, 8-5 for Black).
+    *   **Damage:** Deals a massive **12-16 DMG** to all units in the targeted zone.
+    *   **Strategic Use:** Can clear a crowded board or severely weaken high-HP units, but use it wisely—it's a single-use tactical strike.
 *   **Pawn Promotion:** Pawns reaching the far edge are automatically promoted to **Queens**, gaining full HP and range.
 *   **Castling:** Perform a strategic swap between your King and Rook if neither has moved and the path is clear.
 *   **Victory:** There is no "Checkmate" logic here—you must **execute the enemy King** by depleting his HP to win the campaign.

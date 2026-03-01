@@ -7,14 +7,15 @@ interface SquareProps {
   y: number;
   color: string;
   isHighlight: boolean;
+  highlightColor?: string;
   onClick: () => void;
 }
 
-const Square: React.FC<SquareProps> = ({ x, y, color, isHighlight, onClick }) => {
+const Square: React.FC<SquareProps> = ({ x, y, color, isHighlight, highlightColor, onClick }) => {
   const [hovered, setHovered] = React.useState(false);
   useCursor(hovered);
 
-  const displayColor = isHighlight ? '#ffeb3b' : (hovered ? '#c8e6c9' : color);
+  const displayColor = isHighlight ? (highlightColor || '#ffeb3b') : (hovered ? '#c8e6c9' : color);
 
   return (
     <mesh 
@@ -26,7 +27,11 @@ const Square: React.FC<SquareProps> = ({ x, y, color, isHighlight, onClick }) =>
       receiveShadow
     >
       <planeGeometry args={[1, 1]} />
-      <meshStandardMaterial color={displayColor} />
+      <meshStandardMaterial 
+        color={displayColor} 
+        emissive={isHighlight ? (highlightColor || '#fbc02d') : '#000'}
+        emissiveIntensity={isHighlight ? 0.5 : 0}
+      />
     </mesh>
   );
 };
@@ -35,11 +40,13 @@ interface BoardProps {
   pieces: Piece[];
   selectedPieceId: string | null;
   validMoves: Position[];
+  highlightSquares?: Position[];
+  highlightColor?: string;
   onSquareClick: (x: number, y: number) => void;
   boardStyle: 'wood' | 'stone' | 'marble';
 }
 
-export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick, boardStyle }) => {
+export const ChessBoard: React.FC<BoardProps> = ({ validMoves, highlightSquares = [], highlightColor, onSquareClick, boardStyle }) => {
   const squares = [];
   
   const getStyleColors = () => {
@@ -56,7 +63,11 @@ export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick, bo
     for (let y = 0; y < 8; y++) {
       const isBlack = (x + y) % 2 === 1;
       const color = isBlack ? styleColors.dark : styleColors.light;
-      const isHighlight = validMoves.some(m => m.x === x && m.y === y);
+      
+      const isMoveHighlight = validMoves.some(m => m.x === x && m.y === y);
+      const isExtraHighlight = highlightSquares.some(m => m.x === x && m.y === y);
+      const isHighlight = isMoveHighlight || isExtraHighlight;
+      const squareHighlightColor = isExtraHighlight ? highlightColor : undefined;
       
       squares.push(
         <Square 
@@ -65,6 +76,7 @@ export const ChessBoard: React.FC<BoardProps> = ({ validMoves, onSquareClick, bo
           y={y} 
           color={color} 
           isHighlight={isHighlight}
+          highlightColor={squareHighlightColor}
           onClick={() => onSquareClick(x, y)}
         />
       );

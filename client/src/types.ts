@@ -27,11 +27,13 @@ export interface BattleResult {
   attackerTotal: number;
   attackerStats: number;
   attackerDice: number;
+  attackerColor: PlayerColor;
   defenderRoll: number;
   defenderTotal: number;
   defenderStats: number;
   defenderDice: number;
   defenderDebuff: number;
+  isSiege?: boolean; // New flag for siege attacks
   success: boolean;
   targetX: number;
   targetY: number;
@@ -40,6 +42,6 @@ export interface BattleResult {
 export interface LogEntry {
   id: string;
   message: string;
-  type: 'move' | 'attack' | 'kill' | 'promotion' | 'castle';
+  type: 'move' | 'attack' | 'kill' | 'promotion' | 'castle' | 'siege';
   timestamp: number;
 }

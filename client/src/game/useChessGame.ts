@@ -7,6 +7,7 @@ export const useChessGame = () => {
   const [pieces, setPieces] = useState<Piece[]>(setupBoard());
   const [turn, setTurn] = useState<'white' | 'black'>('white');
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
+  const [selectedOnagerColor, setSelectedOnagerColor] = useState<'white' | 'black' | null>(null);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [isRolling, setIsRolling] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -33,6 +34,65 @@ export const useChessGame = () => {
     setLogs(prev => [newLog, ...prev].slice(0, 50)); // Keep last 50 logs
   };
 
+  const [whiteSiegeUsed, setWhiteSiegeUsed] = useState(false);
+  const [blackSiegeUsed, setBlackSiegeUsed] = useState(false);
+  const [isSiegeFiring, setIsSiegeFiring] = useState<'white' | 'black' | null>(null);
+
+  const fireSiege = (color: 'white' | 'black', targetX: number, targetY: number) => {
+    if (color === 'white' && whiteSiegeUsed) return;
+    if (color === 'black' && blackSiegeUsed) return;
+    if (turn !== color || isRolling || isPaused || winner || !hasStarted) return;
+
+    const targetPiece = pieces.find(p => p.x === targetX && p.y === targetY);
+    if (!targetPiece) return;
+
+    setIsSiegeFiring(color);
+    if (color === 'white') setWhiteSiegeUsed(true);
+    else setBlackSiegeUsed(true);
+
+    addLog(`${color.toUpperCase()} FIRED THE ONAGER at ${targetPiece.color} ${targetPiece.type}!`, 'siege');
+
+    setTimeout(() => {
+      const dmg = Math.floor(Math.random() * 5) + 12; // 12-16
+      
+      // We'll show a battle result for the siege too!
+      setBattleResult({
+        attackerRoll: dmg,
+        attackerTotal: dmg,
+        attackerStats: 0,
+        attackerDice: 16,
+        attackerColor: color,
+        defenderRoll: targetPiece.hp,
+        defenderTotal: Math.max(0, targetPiece.hp - dmg),
+        defenderStats: 0,
+        defenderDice: 0,
+        defenderDebuff: 0,
+        isSiege: true,
+        success: dmg >= targetPiece.hp,
+        targetX,
+        targetY
+      });
+
+      setPieces(prev => prev.map(p => {
+        if (p.id === targetPiece.id) {
+          const newHp = Math.max(0, p.hp - dmg);
+          if (newHp === 0) {
+            if (p.type === 'king') setWinner(color);
+            return { ...p, hp: 0, status: 'dying' as const };
+          }
+          return { ...p, hp: newHp };
+        }
+        return p;
+      }));
+
+      setTimeout(() => {
+        setPieces(prev => prev.filter(p => p.hp > 0 || p.status !== 'dying'));
+        setIsSiegeFiring(null);
+        nextTurn(color);
+      }, 1000);
+    }, 1500); 
+  };
+
   const resetGame = () => {
     setPieces(setupBoard());
     setTurn('white');
@@ -43,6 +103,9 @@ export const useChessGame = () => {
     setWinner(null);
     setHasStarted(false); // Return to main menu
     setLogs([]);
+    setWhiteSiegeUsed(false);
+    setBlackSiegeUsed(false);
+    setIsSiegeFiring(null);
   };
 
   const getPieceAt = (x: number, y: number) => pieces.find(p => p.x === x && p.y === y);
@@ -54,14 +117,37 @@ export const useChessGame = () => {
     setPieces(prev => prev.map(p => p.color === nextPlayer ? { ...p, isDebuffed: false } : p));
   };
 
+  const handleOnagerClick = (color: 'white' | 'black') => {
+    if (isRolling || isPaused || winner || !hasStarted || turn !== color) return;
+    if (color === 'white' && whiteSiegeUsed) return;
+    if (color === 'black' && blackSiegeUsed) return;
+
+    setSelectedOnagerColor(color);
+    setSelectedPieceId(null);
+  };
+
   const handleSquareClick = (x: number, y: number, isAiCall: boolean = false) => {
-    if (isRolling || isPaused || winner || !hasStarted) return; // Block input during dice roll, pause, game over, or if not started
+    if (isRolling || isPaused || winner || !hasStarted) return; 
     
     // Block HUMAN input if it's the AI's turn
     if (isVsAI && turn === 'black' && !isAiCall) return;
 
     // Clear battle result on next action if it's already shown
     if (battleResult && !isRolling) setBattleResult(null);
+
+    // Case 1: Onager is selected and we click a target
+    if (selectedOnagerColor) {
+      const clickedPiece = getPieceAt(x, y);
+      const isInRange = selectedOnagerColor === 'white' ? (y <= 3) : (y >= 4);
+      
+      if (clickedPiece && clickedPiece.color !== selectedOnagerColor && isInRange) {
+        fireSiege(selectedOnagerColor, x, y);
+        setSelectedOnagerColor(null);
+        return;
+      }
+      // If we clicked something else, deselect onager
+      setSelectedOnagerColor(null);
+    }
 
     const clickedPiece = getPieceAt(x, y);
     const selectedPiece = pieces.find(p => p.id === selectedPieceId);
@@ -76,11 +162,11 @@ export const useChessGame = () => {
           // RPG Battle Phase!
           const attackerRoll = rollDice(selectedPiece.type);
           const defenderRoll = rollDice(clickedPiece.type);
-          const attackerTotal = attackerRoll + Math.min(selectedPiece.kills, 5);
+          const attackerTotal = Math.max(0, attackerRoll + Math.min(selectedPiece.kills, 5));
           
           // Apply -2 defense penalty if defender is debuffed
           const defPenalty = clickedPiece.isDebuffed ? 2 : 0;
-          const defenderTotal = defenderRoll + Math.min(clickedPiece.defends, 5) - defPenalty;
+          const defenderTotal = Math.max(0, defenderRoll + Math.min(clickedPiece.defends, 5) - defPenalty);
           
           const success = attackerTotal > defenderTotal;
           const damage = Math.abs(attackerTotal - defenderTotal);
@@ -89,6 +175,7 @@ export const useChessGame = () => {
           setBattleResult({ 
             attackerRoll, attackerTotal, attackerStats: Math.min(selectedPiece.kills, 5),
             attackerDice: getDiceSides(selectedPiece.type),
+            attackerColor: selectedPiece.color,
             defenderRoll, defenderTotal, defenderStats: Math.min(clickedPiece.defends, 5),
             defenderDice: getDiceSides(clickedPiece.type),
             defenderDebuff: defPenalty,
@@ -135,7 +222,7 @@ export const useChessGame = () => {
                         maxHp = 40;
                         hp = 40;
                       }
-                      return { ...p, x, y, type, hp, maxHp, kills: Math.min(p.kills + 1, 5), hasMoved: true, isDebuffed: true, status: 'idle' as const };
+                      return { ...p, x, y, type, hp, maxHp, kills: Math.min(p.kills + 1, 5), hasMoved: true, status: 'idle' as const };
                     }
                     return p;
                   }).filter(p => p.id !== clickedPiece.id));
@@ -145,7 +232,7 @@ export const useChessGame = () => {
                 addLog(`${selectedPiece.color} ${selectedPiece.type} dealt ${damage} dmg to ${clickedPiece.color} ${clickedPiece.type}`, 'attack');
                 setPieces(prev => prev.map(p => {
                   if (p.id === clickedPiece.id) return { ...p, hp: newHp };
-                  if (p.id === selectedPiece.id) return { ...p, hasMoved: true, isDebuffed: true };
+                  if (p.id === selectedPiece.id) return { ...p, hasMoved: true };
                   return p;
                 }));
               }
@@ -178,7 +265,7 @@ export const useChessGame = () => {
               } else {
                 addLog(`${clickedPiece.color} ${clickedPiece.type} repelled attack (${damage === 0 ? 1 : damage} dmg to attacker)`, 'attack');
                 setPieces(prev => prev.map(p => {
-                  if (p.id === selectedPiece.id) return { ...p, hp: newHp, hasMoved: true, isDebuffed: true };
+                  if (p.id === selectedPiece.id) return { ...p, hp: newHp, hasMoved: true };
                   if (p.id === clickedPiece.id) return { ...p, defends: Math.min(p.defends + 1, 5) }; // Integer bonus for survival
                   return p;
                 }));
@@ -260,20 +347,30 @@ export const useChessGame = () => {
     if (isVsAI && turn === 'black' && !isRolling && !isPaused && !winner && hasStarted && !aiMoveSequence && !battleResult) {
       // Small delay to simulate "thinking" and let the UI settle
       const thinkTimer = setTimeout(() => {
-        const move = calculateBestMove(pieces, 'black');
+        const move = calculateBestMove(pieces, 'black', blackSiegeUsed);
         if (move) {
-          setAiMoveSequence({ step: 1, move: { startX: move.piece.x, startY: move.piece.y, targetX: move.target.x, targetY: move.target.y } });
+          if (move.isSiege) {
+            setAiMoveSequence({ step: 1, move: { startX: -1, startY: -1, targetX: move.target.x, targetY: move.target.y } });
+          } else {
+            setAiMoveSequence({ step: 1, move: { startX: move.piece.x, startY: move.piece.y, targetX: move.target.x, targetY: move.target.y } });
+          }
         }
       }, 800);
       return () => clearTimeout(thinkTimer);
     }
-  }, [pieces, turn, isVsAI, isRolling, isPaused, winner, hasStarted, aiMoveSequence, battleResult]);
+  }, [pieces, turn, isVsAI, isRolling, isPaused, winner, hasStarted, aiMoveSequence, battleResult, blackSiegeUsed]);
 
   useEffect(() => {
     if (aiMoveSequence && !isPaused && !winner) {
+      const isSiege = aiMoveSequence.move.startX === -1;
+
       if (aiMoveSequence.step === 1) {
         const timer = setTimeout(() => {
-          handleSquareClick(aiMoveSequence.move.startX, aiMoveSequence.move.startY, true);
+          if (isSiege) {
+            handleOnagerClick('black');
+          } else {
+            handleSquareClick(aiMoveSequence.move.startX, aiMoveSequence.move.startY, true);
+          }
           setAiMoveSequence(prev => prev ? { ...prev, step: 2 } : null);
         }, 300);
         return () => clearTimeout(timer);
@@ -285,7 +382,7 @@ export const useChessGame = () => {
         return () => clearTimeout(timer);
       }
     }
-  }, [aiMoveSequence, isPaused, winner, handleSquareClick]);
+  }, [aiMoveSequence, isPaused, winner, handleSquareClick, handleOnagerClick]);
   // --------------
 
   return {
@@ -316,8 +413,14 @@ export const useChessGame = () => {
     setIsPaused,
     resetGame,
     handleSquareClick,
+    handleOnagerClick,
     setBattleResult,
     isVsAI,
-    setIsVsAI
+    setIsVsAI,
+    whiteSiegeUsed,
+    blackSiegeUsed,
+    isSiegeFiring,
+    fireSiege,
+    selectedOnagerColor
   };
 };

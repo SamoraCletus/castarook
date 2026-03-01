@@ -26,13 +26,49 @@ const evaluatePiece = (piece: Piece): number => {
   return (baseValue * hpPercent) + statsBonus;
 };
 
-export const calculateBestMove = (pieces: Piece[], color: PlayerColor): Move | null => {
+export const calculateBestMove = (
+  pieces: Piece[], 
+  color: PlayerColor, 
+  siegeUsed: boolean
+): { piece: Piece, target: Position, score: number, isSiege?: boolean } | null => {
   const myPieces = pieces.filter(p => p.color === color && p.hp > 0);
   const enemyPieces = pieces.filter(p => p.color !== color && p.hp > 0);
 
-  let bestMove: Move | null = null;
+  let bestMove: { piece: Piece, target: Position, score: number, isSiege?: boolean } | null = null;
   let bestScore = -Infinity;
 
+  // --- Consider Siege Attack ---
+  if (!siegeUsed) {
+    const rangeY = color === 'black' ? [4, 5, 6, 7] : [0, 1, 2, 3];
+    const targets = enemyPieces.filter(p => rangeY.includes(p.y));
+    
+    for (const target of targets) {
+      // Siege deals 12-16 dmg.
+      const avgDmg = 14;
+      let score = 0;
+      
+      if (target.hp <= avgDmg) {
+        // Can kill it!
+        score = evaluatePiece(target) * 3;
+        if (target.type === 'king') score += 10000;
+      } else {
+        // Just damage it
+        score = avgDmg * 2;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = { 
+          piece: { id: 'onager' } as Piece, 
+          target: { x: target.x, y: target.y }, 
+          score, 
+          isSiege: true 
+        };
+      }
+    }
+  }
+
+  // --- Consider Normal Moves ---
   // Shuffle pieces to add some randomness when scores are equal
   const shuffledPieces = [...myPieces].sort(() => Math.random() - 0.5);
 

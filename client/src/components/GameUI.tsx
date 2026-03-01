@@ -31,6 +31,9 @@ interface Props {
   setBattleResult: (result: BattleResult | null) => void;
   isVsAI: boolean;
   setIsVsAI: (vsAI: boolean) => void;
+  whiteSiegeUsed: boolean;
+  blackSiegeUsed: boolean;
+  fireSiege: (color: 'white' | 'black') => void;
 }
 
 export const GameUI: React.FC<Props> = ({ 
@@ -40,7 +43,7 @@ export const GameUI: React.FC<Props> = ({
   setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
   setFogNear, setFogFar,
   setHasStarted, setIsNight, setIsPaused, resetGame, setBattleResult,
-  isVsAI, setIsVsAI
+  isVsAI, setIsVsAI, whiteSiegeUsed, blackSiegeUsed, fireSiege
 }) => {
   const [isTutorialOpen, setIsTutorialOpen] = React.useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = React.useState(false);
@@ -187,9 +190,19 @@ export const GameUI: React.FC<Props> = ({
             <span>White:</span>
             <span style={{ fontWeight: 'bold' }}>{whitePieces.length} Units ({whiteKills} Kills)</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
             <span>Black:</span>
             <span style={{ fontWeight: 'bold' }}>{blackPieces.length} Units ({blackKills} Kills)</span>
+          </div>
+          <div style={{ fontSize: '11px', color: '#aaa', borderTop: '1px solid rgba(212, 175, 55, 0.2)', paddingTop: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+              <span>Onager (White):</span>
+              <span style={{ color: whiteSiegeUsed ? '#f44336' : '#4caf50' }}>{whiteSiegeUsed ? 'DEPLETED' : 'READY'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>Onager (Black):</span>
+              <span style={{ color: blackSiegeUsed ? '#f44336' : '#4caf50' }}>{blackSiegeUsed ? 'DEPLETED' : 'READY'}</span>
+            </div>
           </div>
         </div>
 
@@ -274,6 +287,7 @@ export const GameUI: React.FC<Props> = ({
                   <ul style={{ color: '#d4af37' }}>
                     <li>Promotion: Reach the end to crown a Queen.</li>
                     <li>Castling: King and Rook may pivot if unmoved.</li>
+                    <li>Siege Engine: Fire your Onager once per match to rain destruction on the nearest 4 rows (12-16 DMG).</li>
                   </ul>
                 </li>
                 <li><strong>Observation:</strong>
@@ -470,19 +484,29 @@ export const GameUI: React.FC<Props> = ({
           minWidth: '450px',
           pointerEvents: 'auto'
         }}>
-          <h1 style={{ fontSize: '48px', margin: '0 0 20px 0', color: battleResult.success ? '#4caf50' : '#f44336', textShadow: '2px 2px 0px #000' }}>
-            {battleResult.success ? 'VICTORY' : 'DEFEATED'}
+          <h1 style={{ fontSize: '48px', margin: '0 0 20px 0', color: battleResult.success ? '#4caf50' : '#f44336', textShadow: '2px 2px 0px #000', textTransform: 'uppercase' }}>
+            {battleResult.success 
+              ? `${battleResult.attackerColor}'s Victory` 
+              : `${battleResult.attackerColor === 'white' ? 'black' : 'white'}'s Victory`}
           </h1>
           <div style={{ marginBottom: '25px', padding: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', border: '1px solid #d4af37' }}>
-            <div style={{ fontSize: '22px', marginBottom: '12px', color: '#d4af37' }}>
-              Attacker (D{battleResult.attackerDice}): {battleResult.attackerRoll} + {battleResult.attackerStats} = <strong>{battleResult.attackerTotal}</strong>
-            </div>
-            <div style={{ fontSize: '22px', color: '#f0d9b5' }}>
-              Defender (D{battleResult.defenderDice}): {battleResult.defenderRoll} + {battleResult.defenderStats} {battleResult.defenderDebuff > 0 ? `- ${battleResult.defenderDebuff} (Vulnerable)` : ''} = <strong>{battleResult.defenderTotal}</strong>
-            </div>
+            {battleResult.isSiege ? (
+              <div style={{ fontSize: '22px', color: '#ff5722' }}>
+                Siege Onslaught: <strong>{battleResult.attackerTotal} DMG</strong> dealt to defender!
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: '22px', marginBottom: '12px', color: '#d4af37' }}>
+                  Attacker (D{battleResult.attackerDice}): {battleResult.attackerRoll} + {battleResult.attackerStats} = <strong>{battleResult.attackerTotal}</strong>
+                </div>
+                <div style={{ fontSize: '22px', color: '#f0d9b5' }}>
+                  Defender (D{battleResult.defenderDice}): {battleResult.defenderRoll} + {battleResult.defenderStats} {battleResult.defenderDebuff > 0 ? `- ${battleResult.defenderDebuff} (Vulnerable)` : ''} = <strong>{battleResult.defenderTotal}</strong>
+                </div>
+              </>
+            )}
           </div>
           <h2 style={{ fontSize: '24px', margin: '0 0 25px 0', opacity: 0.9, fontStyle: 'italic' }}>
-            {battleResult.success ? 'The objective is secured!' : 'The onslaught was resisted!'}
+            {battleResult.isSiege ? 'Brute force from the shadows!' : (battleResult.success ? 'The objective is secured!' : 'The onslaught was resisted!')}
           </h2>
           <button 
             onClick={() => setBattleResult(null)}

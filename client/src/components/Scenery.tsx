@@ -561,108 +561,149 @@ const Onager = ({ position, rotationY = 0, isNight, isUsed, isSelected, color, o
       onPointerOver={() => setHovered(true)}
       onPointerOut={() => setHovered(false)}
     >
-      {/* Selection Glow */}
+      {/* Selection Glow - Enhanced Energy Field */}
       {isSelected && (
-        <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[1.2, 1.5, 32]} />
-          <meshBasicMaterial color="#fff" transparent opacity={0.5} />
-        </mesh>
+        <group>
+          <mesh position={[0, 0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[1.2, 1.4, 32]} />
+            <meshBasicMaterial color={color} transparent opacity={0.4} side={THREE.DoubleSide} />
+          </mesh>
+          <Float speed={5} rotationIntensity={0.2} floatIntensity={0.5}>
+            <mesh position={[0, 0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[1.1, 1.15, 32]} />
+              <meshBasicMaterial color={color} transparent opacity={0.6} side={THREE.DoubleSide} />
+            </mesh>
+          </Float>
+          <Sparkles count={20} scale={2} size={3} speed={2} color={color} />
+        </group>
       )}
 
-      {/* Main Chassis */}
-      <group scale={0.7}>
+      {/* Main Chassis - Scaled down to 0.5 for better fit */}
+      <group scale={0.5}>
         {/* Longitudinal Beams */}
         <mesh castShadow receiveShadow position={[0.6, 0.4, 0]}>
-          <boxGeometry args={[0.2, 0.3, 4]} />
-          <meshStandardMaterial color={woodColor} />
+          <boxGeometry args={[0.3, 0.4, 5]} />
+          <meshStandardMaterial color={woodColor} emissive={isSelected ? color : "#000"} emissiveIntensity={isSelected ? 0.2 : 0} />
         </mesh>
         <mesh castShadow receiveShadow position={[-0.6, 0.4, 0]}>
-          <boxGeometry args={[0.2, 0.3, 4]} />
-          <meshStandardMaterial color={woodColor} />
+          <boxGeometry args={[0.3, 0.4, 5]} />
+          <meshStandardMaterial color={woodColor} emissive={isSelected ? color : "#000"} emissiveIntensity={isSelected ? 0.2 : 0} />
         </mesh>
         
-        {/* Cross Beams */}
-        {[ -1.5, 0, 1.5 ].map(z => (
-          <mesh key={z} castShadow receiveShadow position={[0, 0.4, z]}>
-            <boxGeometry args={[1.4, 0.25, 0.2]} />
-            <meshStandardMaterial color={woodColor} />
-          </mesh>
+        {/* Cross Beams with Bolts */}
+        {[ -2, -0.5, 0.5, 2 ].map(z => (
+          <group key={z} position={[0, 0.4, z]}>
+            <mesh castShadow receiveShadow>
+              <boxGeometry args={[1.8, 0.35, 0.3]} />
+              <meshStandardMaterial color={woodColor} />
+            </mesh>
+            {/* Bolts */}
+            <mesh position={[0.6, 0.2, 0]}><sphereGeometry args={[0.08, 8, 8]} /><meshStandardMaterial color={metalColor} /></mesh>
+            <mesh position={[-0.6, 0.2, 0]}><sphereGeometry args={[0.08, 8, 8]} /><meshStandardMaterial color={metalColor} /></mesh>
+          </group>
         ))}
 
-        {/* Wheels with detailed spokes */}
-        {[-0.8, 0.8].map(x => [ -1.6, 1.6 ].map(z => (
-          <group key={`${x}-${z}`} position={[x, 0.3, z]}>
+        {/* Wheels with detailed hubs and iron rims */}
+        {[-1, 1].map(x => [ -2, 2 ].map(z => (
+          <group key={`${x}-${z}`} position={[x, 0.4, z]}>
+            {/* Outer Rim */}
             <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-              <cylinderGeometry args={[0.4, 0.4, 0.2, 16]} />
-              <meshStandardMaterial color="#222" />
+              <cylinderGeometry args={[0.5, 0.5, 0.25, 24]} />
+              <meshStandardMaterial color="#111" metalness={0.8} />
             </mesh>
-            <mesh rotation={[0, 0, Math.PI / 2]} position={[x > 0 ? 0.05 : -0.05, 0, 0]}>
-              <cylinderGeometry args={[0.1, 0.1, 0.3, 8]} />
-              <meshStandardMaterial color={metalColor} />
+            {/* Wood Spokes */}
+            <mesh rotation={[0, 0, Math.PI / 2]} scale={[0.9, 1, 0.9]}>
+              <cylinderGeometry args={[0.45, 0.45, 0.2, 16]} />
+              <meshStandardMaterial color={woodColor} />
+            </mesh>
+            {/* Metal Hub */}
+            <mesh rotation={[0, 0, Math.PI / 2]} position={[x > 0 ? 0.1 : -0.1, 0, 0]}>
+              <cylinderGeometry args={[0.15, 0.15, 0.4, 12]} />
+              <meshStandardMaterial color={metalColor} metalness={0.9} />
             </mesh>
           </group>
         )))}
 
-        {/* Side Frames (A-Frame) */}
-        {[-0.6, 0.6].map(x => (
-          <group key={x} position={[x, 1.2, 0]}>
-            <mesh castShadow receiveShadow rotation={[0.4, 0, 0]} position={[0, 0, -0.4]}>
-              <boxGeometry args={[0.15, 1.8, 0.15]} />
+        {/* Side Frames (A-Frame) - More sturdy */}
+        {[-0.7, 0.7].map(x => (
+          <group key={x} position={[x, 1.5, 0]}>
+            <mesh castShadow receiveShadow rotation={[0.5, 0, 0]} position={[0, 0, -0.6]}>
+              <boxGeometry args={[0.2, 2.5, 0.2]} />
               <meshStandardMaterial color={woodColor} />
             </mesh>
-            <mesh castShadow receiveShadow rotation={[-0.4, 0, 0]} position={[0, 0, 0.4]}>
-              <boxGeometry args={[0.15, 1.8, 0.15]} />
+            <mesh castShadow receiveShadow rotation={[-0.5, 0, 0]} position={[0, 0, 0.6]}>
+              <boxGeometry args={[0.2, 2.5, 0.2]} />
               <meshStandardMaterial color={woodColor} />
             </mesh>
             {/* Horizontal axle support */}
-            <mesh castShadow receiveShadow position={[0, 0.7, 0]} rotation={[Math.PI/2, 0, 0]}>
-              <cylinderGeometry args={[0.1, 0.1, 1.2, 8]} />
-              <meshStandardMaterial color={metalColor} />
+            <mesh castShadow receiveShadow position={[0, 0.8, 0]} rotation={[Math.PI/2, 0, 0]}>
+              <cylinderGeometry args={[0.15, 0.15, 1.4, 12]} />
+              <meshStandardMaterial color={metalColor} metalness={0.7} />
             </mesh>
           </group>
         ))}
 
         {/* THE ARM - Cocked (bottom) or Fired (top) */}
-        <group position={[0, 1.8, 0]} rotation={[isUsed ? -Math.PI / 6 : Math.PI / 3, 0, 0]}>
-          <mesh castShadow receiveShadow position={[0, 1.5, 0]}>
-            <boxGeometry args={[0.2, 3.5, 0.2]} />
-            <meshStandardMaterial color={woodColor} />
+        {/* Facing logic: Cocked leans AWAY from board, Fired leans TOWARDS board */}
+        <group position={[0, 2.2, 0]} rotation={[isUsed ? -Math.PI / 4 : Math.PI / 3, 0, 0]}>
+          <mesh castShadow receiveShadow position={[0, 1.8, 0]}>
+            <boxGeometry args={[0.25, 4.5, 0.25]} />
+            <meshStandardMaterial color={woodColor} emissive={isSelected ? color : "#000"} emissiveIntensity={isSelected ? 0.3 : 0} />
           </mesh>
           
           {/* Team Color Stripe on Arm */}
-          <mesh position={[0, 1.5, 0.11]}>
-            <boxGeometry args={[0.1, 2, 0.02]} />
-            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
+          <mesh position={[0, 1.8, 0.13]}>
+            <boxGeometry args={[0.15, 3, 0.02]} />
+            <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.8} />
           </mesh>
 
-          {/* Bucket/Sling */}
-          <group position={[0, 3.2, 0]}>
+          {/* Bucket/Sling - More detail */}
+          <group position={[0, 4.2, 0]}>
             <mesh castShadow>
-              <cylinderGeometry args={[0.5, 0.35, 0.6, 12]} />
-              <meshStandardMaterial color={metalColor} metalness={0.6} roughness={0.4} />
+              <cylinderGeometry args={[0.6, 0.4, 0.8, 16]} />
+              <meshStandardMaterial color={metalColor} metalness={0.7} roughness={0.3} />
             </mesh>
+            {/* Iron Bands on Bucket */}
+            <mesh position={[0, 0.2, 0]} rotation={[0, 0, 0]}>
+              <torusGeometry args={[0.55, 0.03, 8, 24]} />
+              <meshStandardMaterial color="#222" metalness={1} />
+            </mesh>
+            
             {/* Projectile (Rock) - Only visible if not used */}
             {!isUsed && (
-              <mesh position={[0, 0.4, 0]} castShadow>
-                <icosahedronGeometry args={[0.35, 1]} />
-                <meshStandardMaterial color="#555" roughness={1} />
+              <mesh position={[0, 0.5, 0]} castShadow>
+                <icosahedronGeometry args={[0.45, 1]} />
+                <meshStandardMaterial color="#444" roughness={1} flatShading />
               </mesh>
             )}
           </group>
 
-          {/* Counterweight */}
-          <mesh position={[0, -0.4, 0]} castShadow>
-            <boxGeometry args={[0.8, 0.8, 0.8]} />
-            <meshStandardMaterial color={metalColor} />
-          </mesh>
+          {/* Counterweight Box */}
+          <group position={[0, -0.5, 0]}>
+            <mesh castShadow>
+              <boxGeometry args={[1.2, 1.2, 1.2]} />
+              <meshStandardMaterial color={woodColor} />
+            </mesh>
+            {/* Metal trim on counterweight */}
+            <mesh position={[0, 0, 0]}>
+              <boxGeometry args={[1.25, 0.1, 1.25]} />
+              <meshStandardMaterial color={metalColor} />
+            </mesh>
+          </group>
         </group>
 
-        {/* Rope detail */}
+        {/* Winch and Rope detail */}
         {!isUsed && (
-          <mesh position={[0, 0.6, 1.5]} rotation={[0.8, 0, 0]}>
-            <cylinderGeometry args={[0.03, 0.03, 3, 6]} />
-            <meshStandardMaterial color="#8d6e63" />
-          </mesh>
+          <group position={[0, 0.6, 2]}>
+            <mesh rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.2, 0.2, 1.4, 12]} />
+              <meshStandardMaterial color={woodColor} />
+            </mesh>
+            <mesh position={[0, 0.2, -0.5]} rotation={[0.6, 0, 0]}>
+              <cylinderGeometry args={[0.03, 0.03, 4, 6]} />
+              <meshStandardMaterial color="#8d6e63" />
+            </mesh>
+          </group>
         )}
       </group>
     </group>
@@ -784,6 +825,7 @@ export const Scenery = ({
       {/* Siege Engines */}
       <Onager 
         position={[0, -0.15, -6.5]} 
+        rotationY={Math.PI}
         isNight={isNight} 
         isUsed={whiteSiegeUsed} 
         isSelected={selectedOnagerColor === 'white'}
@@ -792,7 +834,7 @@ export const Scenery = ({
       />
       <Onager 
         position={[0, -0.15, 6.5]} 
-        rotationY={Math.PI} 
+        rotationY={0} 
         isNight={isNight} 
         isUsed={blackSiegeUsed}
         isSelected={selectedOnagerColor === 'black'}

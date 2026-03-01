@@ -11,13 +11,14 @@ interface Props {
   defenderStats: number;
   defenderDice: number;
   defenderDebuff: number;
+  isSiege?: boolean; // Added isSiege prop
   isRolling: boolean;
 }
 
 export const DiceRoll: React.FC<Props> = ({ 
   attackerRoll, attackerStats, attackerDice,
   defenderRoll, defenderStats, defenderDice, defenderDebuff,
-  isRolling 
+  isSiege, isRolling 
 }) => {
   const attackerGroupRef = useRef<THREE.Group>(null);
   const defenderGroupRef = useRef<THREE.Group>(null);
@@ -47,7 +48,7 @@ export const DiceRoll: React.FC<Props> = ({
         attackerGroupRef.current.rotation.x += delta * 15;
         attackerGroupRef.current.rotation.y += delta * 20;
       }
-      if (defenderGroupRef.current) {
+      if (defenderGroupRef.current && !isSiege) {
         defenderGroupRef.current.rotation.x -= delta * 18;
         defenderGroupRef.current.rotation.y -= delta * 22;
       }
@@ -66,8 +67,8 @@ export const DiceRoll: React.FC<Props> = ({
 
   return (
     <group position={[0, 5, 0]}>
-      {/* Attacker */}
-      <group position={[-2, 0, 0]}>
+      {/* Attacker / Siege */}
+      <group position={isSiege ? [0, 0, 0] : [-2, 0, 0]}>
         {/* The Spinning Mesh */}
         <group ref={attackerGroupRef}>
           <mesh castShadow>
@@ -77,58 +78,70 @@ export const DiceRoll: React.FC<Props> = ({
         </group>
         {/* The Billboard Text */}
         <Billboard follow={true}>
-          <Text position={[0, 1.2, 0]} fontSize={0.4} color="white" outlineWidth={0.05} outlineColor="black">
-            D{attackerDice}
-          </Text>
+          {attackerDice > 0 && !isSiege && (
+            <Text position={[0, 1.2, 0]} fontSize={0.4} color="white" outlineWidth={0.05} outlineColor="black">
+              D{attackerDice}
+            </Text>
+          )}
           <Text position={[0, 0, 1.1]} fontSize={0.6} color="white" anchorX="center" anchorY="middle">
             {displayAttacker}
           </Text>
-          <Text position={[0, -1.8, 1.1]} fontSize={0.5} color="#ff8a80" outlineWidth={0.05} outlineColor="black">
-            Attacker
-          </Text>
-          <Text position={[0, -2.5, 1.1]} fontSize={0.6} color="#ffeb3b" outlineWidth={0.08} outlineColor="black" fontWeight="bold">
-            +{attackerStats} Kills
-          </Text>
-        </Billboard>
-      </group>
-      
-      {/* VS Text */}
-      <Billboard follow={true}>
-        <Text position={[0, 0, 0]} fontSize={0.8} color="white" outlineWidth={0.05} outlineColor="black">
-          VS
-        </Text>
-      </Billboard>
-
-      {/* Defender */}
-      <group position={[2, 0, 0]}>
-        {/* The Spinning Mesh */}
-        <group ref={defenderGroupRef}>
-          <mesh castShadow>
-            <icosahedronGeometry args={[1, 0]} />
-            <meshStandardMaterial color="#1976d2" roughness={0.3} metalness={0.1} flatShading />
-          </mesh>
-        </group>
-        {/* The Billboard Text */}
-        <Billboard follow={true}>
-          <Text position={[0, 1.2, 0]} fontSize={0.4} color="white" outlineWidth={0.05} outlineColor="black">
-            D{defenderDice}
-          </Text>
-          <Text position={[0, 0, 1.1]} fontSize={0.6} color="white" anchorX="center" anchorY="middle">
-            {displayDefender}
-          </Text>
-          <Text position={[0, -1.8, 1.1]} fontSize={0.5} color="#82b1ff" outlineWidth={0.05} outlineColor="black">
-            Defender
-          </Text>
-          <Text position={[0, -2.5, 1.1]} fontSize={0.6} color="#ffeb3b" outlineWidth={0.08} outlineColor="black" fontWeight="bold">
-            +{defenderStats} Defends
-          </Text>
-          {defenderDebuff > 0 && (
-            <Text position={[0, -3.2, 1.1]} fontSize={0.4} color="#ff5252" outlineWidth={0.05} outlineColor="black" fontWeight="bold">
-              - {defenderDebuff} VULNERABLE
-            </Text>
+          {!isSiege && (
+            <>
+              <Text position={[0, -1.8, 1.1]} fontSize={0.5} color="#ff8a80" outlineWidth={0.05} outlineColor="black">
+                Attacker
+              </Text>
+              <Text position={[0, -2.5, 1.1]} fontSize={0.6} color="#ffeb3b" outlineWidth={0.08} outlineColor="black" fontWeight="bold">
+                +{attackerStats} Kills
+              </Text>
+            </>
           )}
         </Billboard>
       </group>
+      
+      {/* VS Text - Hide if Siege */}
+      {!isSiege && (
+        <Billboard follow={true}>
+          <Text position={[0, 0, 0]} fontSize={0.8} color="white" outlineWidth={0.05} outlineColor="black">
+            VS
+          </Text>
+        </Billboard>
+      )}
+
+      {/* Defender - Hide if Siege */}
+      {!isSiege && (
+        <group position={[2, 0, 0]}>
+          {/* The Spinning Mesh */}
+          <group ref={defenderGroupRef}>
+            <mesh castShadow>
+              <icosahedronGeometry args={[1, 0]} />
+              <meshStandardMaterial color="#1976d2" roughness={0.3} metalness={0.1} flatShading />
+            </mesh>
+          </group>
+          {/* The Billboard Text */}
+          <Billboard follow={true}>
+            {defenderDice > 0 && (
+              <Text position={[0, 1.2, 0]} fontSize={0.4} color="white" outlineWidth={0.05} outlineColor="black">
+                D{defenderDice}
+              </Text>
+            )}
+            <Text position={[0, 0, 1.1]} fontSize={0.6} color="white" anchorX="center" anchorY="middle">
+              {displayDefender}
+            </Text>
+            <Text position={[0, -1.8, 1.1]} fontSize={0.5} color="#82b1ff" outlineWidth={0.05} outlineColor="black">
+              Defender
+            </Text>
+            <Text position={[0, -2.5, 1.1]} fontSize={0.6} color="#ffeb3b" outlineWidth={0.08} outlineColor="black" fontWeight="bold">
+              +{defenderStats} Defends
+            </Text>
+            {defenderDebuff > 0 && (
+              <Text position={[0, -3.2, 1.1]} fontSize={0.4} color="#ff5252" outlineWidth={0.05} outlineColor="black" fontWeight="bold">
+                - {defenderDebuff} VULNERABLE
+              </Text>
+            )}
+          </Billboard>
+        </group>
+      )}
     </group>
   );
 };
