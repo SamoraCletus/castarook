@@ -3,6 +3,7 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Sky, Stars, Environment } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useChessGame } from './game/useChessGame';
+import { useAudio } from './game/useAudio';
 import { getValidMoves } from './game/ChessLogic';
 import { ChessBoard } from './components/ChessBoard';
 import { ChessPiece } from './components/ChessPiece';
@@ -17,8 +18,6 @@ const CameraHandler = ({ controlsRef }: { controlsRef: React.RefObject<OrbitCont
 
   const resetCamera = () => {
     if (controlsRef.current) {
-      // Original camera position: [0, 8, -10]
-      // Original target: [0, 0, 0]
       camera.position.set(0, 8, -10);
       controlsRef.current.target.set(0, 0, 0);
       controlsRef.current.update();
@@ -33,7 +32,6 @@ const CameraHandler = ({ controlsRef }: { controlsRef: React.RefObject<OrbitCont
     };
 
     const handleMouseDown = (e: MouseEvent) => {
-      // Middle click check
       if (e.button === 1) {
         resetCamera();
       }
@@ -53,6 +51,10 @@ const CameraHandler = ({ controlsRef }: { controlsRef: React.RefObject<OrbitCont
 function App() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { 
+    volume, setVolume, isMuted, setIsMuted, playSound, startMusic 
+  } = useAudio();
+
+  const { 
     pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, 
     isNight, hasStarted, fogNear, fogFar, logs,
     boardStyle, windStrength, whiteColor, blackColor,
@@ -60,7 +62,7 @@ function App() {
     setHasStarted, setIsNight, setIsPaused, setFogNear, setFogFar,
     resetGame, handleSquareClick, handleOnagerClick, setBattleResult, isVsAI, setIsVsAI,
     whiteSiegeUsed, blackSiegeUsed, isSiegeFiring, fireSiege, selectedOnagerColor
-  } = useChessGame();
+  } = useChessGame(playSound);
 
   const selectedPiece = useMemo(() => 
     pieces.find(p => p.id === selectedPieceId) || null,
@@ -193,6 +195,11 @@ function App() {
         whiteSiegeUsed={whiteSiegeUsed}
         blackSiegeUsed={blackSiegeUsed}
         fireSiege={fireSiege}
+        volume={volume}
+        setVolume={setVolume}
+        isMuted={isMuted}
+        setIsMuted={setIsMuted}
+        startMusic={startMusic}
       />
     </div>
   );

@@ -33,18 +33,25 @@ interface Props {
   setIsVsAI: (vsAI: boolean) => void;
   whiteSiegeUsed: boolean;
   blackSiegeUsed: boolean;
-  fireSiege: (color: 'white' | 'black') => void;
-}
+  fireSiege: (color: 'white' | 'black', targetX: number, targetY: number) => void;
+  volume: number;
+  setVolume: (v: number) => void;
+  isMuted: boolean;
+  setIsMuted: (m: boolean) => void;
+  startMusic: () => void;
+  }
 
-export const GameUI: React.FC<Props> = ({ 
+  export const GameUI: React.FC<Props> = ({ 
   turn, selectedPiece, battleResult, pieces, isPaused, winner, isNight, hasStarted, 
   fogNear, fogFar, logs, 
   boardStyle, windStrength, whiteColor, blackColor,
   setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
   setFogNear, setFogFar,
   setHasStarted, setIsNight, setIsPaused, resetGame, setBattleResult,
-  isVsAI, setIsVsAI, whiteSiegeUsed, blackSiegeUsed, fireSiege
-}) => {
+  isVsAI, setIsVsAI, whiteSiegeUsed, blackSiegeUsed, fireSiege,
+  volume, setVolume, isMuted, setIsMuted, startMusic
+  }) => {
+
   const [isTutorialOpen, setIsTutorialOpen] = React.useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = React.useState(false);
   const [showAIWarning, setShowAIWarning] = React.useState(false);
@@ -146,10 +153,10 @@ export const GameUI: React.FC<Props> = ({
             </h1>
             <div style={{ color: '#d4af37', fontSize: '16px', fontWeight: 'bold', marginBottom: '30px', letterSpacing: '3px', textShadow: '1px 1px 0px #000' }}>v{packageJson.version}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '320px', margin: '0 auto' }}>
-              <button onClick={() => { setIsVsAI(false); setHasStarted(true); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', border: '2px solid #fff', fontSize: '20px', fontWeight: 'bold', padding: '15px' }}>Player vs Player</button>
+              <button onClick={() => { setIsVsAI(false); setHasStarted(true); startMusic(); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', border: '2px solid #fff', fontSize: '20px', fontWeight: 'bold', padding: '15px' }}>Player vs Player</button>
               
               <div>
-                <button onClick={() => { setIsVsAI(true); setHasStarted(true); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #546e7a, #37474f)', color: '#fff', border: '2px solid #b0bec5', fontSize: '20px', fontWeight: 'bold', padding: '15px', marginBottom: '5px' }}>Player vs AI (Beta)</button>
+                <button onClick={() => { setIsVsAI(true); setHasStarted(true); startMusic(); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #546e7a, #37474f)', color: '#fff', border: '2px solid #b0bec5', fontSize: '20px', fontWeight: 'bold', padding: '15px', marginBottom: '5px' }}>Player vs AI (Beta)</button>
                 <div style={{ color: '#ffb74d', fontSize: '12px', fontStyle: 'italic', letterSpacing: '1px', lineHeight: '1.4' }}>Warning: The AI uses a greedy algorithm and may behave unpredictably or foolishly.</div>
               </div>
 
@@ -448,6 +455,28 @@ export const GameUI: React.FC<Props> = ({
               <div style={{ marginBottom: '15px' }}>
                 <div style={{ color: '#f0d9b5', fontSize: '12px', marginBottom: '5px' }}>Wind Power: {windStrength.toFixed(1)}x</div>
                 <input type="range" min="0.1" max="3.0" step="0.1" value={windStrength} onChange={(e) => setWindStrength(parseFloat(e.target.value))} style={{ width: '100%', pointerEvents: 'auto' }} />
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.3)', paddingTop: '10px', marginTop: '10px' }}>
+                <div style={{ color: '#d4af37', marginBottom: '10px', fontSize: '14px', textTransform: 'uppercase', textAlign: 'center' }}>Audio Chronicles</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                  <button 
+                    onClick={() => setIsMuted(!isMuted)}
+                    style={{ 
+                      background: isMuted ? '#f44336' : '#4caf50', color: '#fff', border: '1px solid #fff', 
+                      borderRadius: '4px', padding: '4px 8px', cursor: 'pointer', fontSize: '12px', pointerEvents: 'auto'
+                    }}
+                  >
+                    {isMuted ? '🔇 Muted' : '🔊 Active'}
+                  </button>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type="range" min="0" max="1" step="0.05" value={volume} 
+                      onChange={(e) => setVolume(parseFloat(e.target.value))} 
+                      style={{ width: '100%', pointerEvents: 'auto' }} 
+                    />
+                  </div>
+                </div>
               </div>
 
               <div style={{ borderTop: '1px solid rgba(212, 175, 55, 0.3)', paddingTop: '10px', marginTop: '10px' }}>

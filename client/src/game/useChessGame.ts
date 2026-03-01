@@ -3,7 +3,7 @@ import type { Piece, BattleResult, LogEntry, Position } from '../types';
 import { setupBoard, getValidMoves, rollDice, getDiceSides } from './ChessLogic';
 import { calculateBestMove } from './ChessAI';
 
-export const useChessGame = () => {
+export const useChessGame = (playSound: (name: any) => void) => {
   const [pieces, setPieces] = useState<Piece[]>(setupBoard());
   const [turn, setTurn] = useState<'white' | 'black'>('white');
   const [selectedPieceId, setSelectedPieceId] = useState<string | null>(null);
@@ -50,6 +50,7 @@ export const useChessGame = () => {
     if (color === 'white') setWhiteSiegeUsed(true);
     else setBlackSiegeUsed(true);
 
+    playSound('siege');
     addLog(`${color.toUpperCase()} FIRED THE ONAGER at ${targetPiece.color} ${targetPiece.type}!`, 'siege');
 
     setTimeout(() => {
@@ -122,6 +123,7 @@ export const useChessGame = () => {
     if (color === 'white' && whiteSiegeUsed) return;
     if (color === 'black' && blackSiegeUsed) return;
 
+    playSound('select');
     setSelectedOnagerColor(color);
     setSelectedPieceId(null);
   };
@@ -160,6 +162,7 @@ export const useChessGame = () => {
       if (isValidMove) {
         if (clickedPiece && clickedPiece.color !== selectedPiece.color) {
           // RPG Battle Phase!
+          playSound('attack');
           const attackerRoll = rollDice(selectedPiece.type);
           const defenderRoll = rollDice(clickedPiece.type);
           const attackerTotal = Math.max(0, attackerRoll + Math.min(selectedPiece.kills, 5));
@@ -186,6 +189,7 @@ export const useChessGame = () => {
           setTimeout(() => {
             setIsRolling(false);
             if (success) {
+              playSound('victory');
               // Attacker wins
               const newHp = clickedPiece.hp - damage;
               const defenderKilled = newHp <= 0;
@@ -237,6 +241,7 @@ export const useChessGame = () => {
                 }));
               }
             } else {
+              playSound('defeat');
               // Defender wins (or draw)
               const newHp = selectedPiece.hp - (damage === 0 ? 1 : damage); // Draw deals 1 damage to attacker
               const attackerKilled = newHp <= 0;
@@ -293,6 +298,7 @@ export const useChessGame = () => {
           }
 
           addLog(logMsg, logType);
+          playSound('move');
 
           setPieces(prev => {
             let nextPieces = prev.map(p => {
@@ -336,6 +342,7 @@ export const useChessGame = () => {
 
     // Select piece if it belongs to current player
     if (clickedPiece && clickedPiece.color === turn) {
+      playSound('select');
       setSelectedPieceId(clickedPiece.id);
     } else {
       setSelectedPieceId(null);
