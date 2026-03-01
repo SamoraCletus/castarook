@@ -34,9 +34,24 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick, custom
 
     // Pulse vulnerability ring
     if (ringRef.current && piece.isDebuffed) {
-      const pulse = 0.8 + Math.sin(t * 5) * 0.2;
-      ringRef.current.scale.set(pulse, pulse, pulse);
-      ringRef.current.material.opacity = 0.4 + Math.sin(t * 5) * 0.2;
+      const pulseVertical = 0.1 + Math.sin(t * 5) * 0.15; // Vertical "slider" movement
+      
+      ringRef.current.position.y = pulseVertical;
+      
+      // Update opacity for all meshes in the group
+      ringRef.current.traverse((child) => {
+        if (child instanceof THREE.Mesh && child.material) {
+          const mat = child.material as THREE.MeshStandardMaterial;
+          // Determine base opacity by geometry type/index
+          // Inner circle or outer rings
+          const isCenter = child.geometry.type === 'CircleGeometry';
+          const isMiddle = child.geometry.type === 'RingGeometry' && mat.emissive.getHex() === 0xd4af37;
+          
+          // Use a higher minimum opacity (0.4) to ensure it's never invisible
+          const baseOpacity = isCenter ? 0.8 : isMiddle ? 0.5 : 0.7;
+          mat.opacity = baseOpacity + Math.sin(t * 5) * 0.2;
+        }
+      });
     }
 
     if (piece.status === 'attacking') {
@@ -182,12 +197,46 @@ export const ChessPiece: React.FC<Props> = ({ piece, isSelected, onClick, custom
     >
       {getGeometry()}
 
-      {/* Vulnerability Halo (Red Pulsing Ring) */}
+      {/* Vulnerability Halo (Bullseye Energy Field) */}
       {piece.isDebuffed && (
-        <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, 0]}>
-          <ringGeometry args={[0.4, 0.6, 32]} />
-          <meshBasicMaterial color="#ff1744" transparent opacity={0.6} side={THREE.DoubleSide} />
-        </mesh>
+        <group ref={ringRef} position={[0, 0.1, 0]}>
+          {/* Outer Ring - Bright Red */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.55, 0.65, 32]} />
+            <meshStandardMaterial 
+              color="#ff0000" 
+              emissive="#ff0000" 
+              emissiveIntensity={2} 
+              transparent 
+              opacity={0.8} 
+              side={THREE.DoubleSide} 
+            />
+          </mesh>
+          {/* Middle Ring - White/Gold Glow */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+            <ringGeometry args={[0.35, 0.45, 32]} />
+            <meshStandardMaterial 
+              color="#ffffff" 
+              emissive="#d4af37" 
+              emissiveIntensity={1.5} 
+              transparent 
+              opacity={0.6} 
+              side={THREE.DoubleSide} 
+            />
+          </mesh>
+          {/* Inner Bullseye - Solid Red */}
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+            <circleGeometry args={[0.15, 16]} />
+            <meshStandardMaterial 
+              color="#ff0000" 
+              emissive="#ff0000" 
+              emissiveIntensity={1} 
+              transparent 
+              opacity={0.9} 
+              side={THREE.DoubleSide} 
+            />
+          </mesh>
+        </group>
       )}
 
       {/* Health Bar Billboard */}

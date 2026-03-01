@@ -182,6 +182,7 @@ export const useChessGame = (playSound: (name: any) => void) => {
             defenderRoll, defenderTotal, defenderStats: Math.min(clickedPiece.defends, 5),
             defenderDice: getDiceSides(clickedPiece.type),
             defenderDebuff: defPenalty,
+            isSiege: false,
             success,
             targetX: x, targetY: y
           });

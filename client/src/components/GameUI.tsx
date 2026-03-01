@@ -39,6 +39,7 @@ interface Props {
   isMuted: boolean;
   setIsMuted: (m: boolean) => void;
   startMusic: () => void;
+  playSound: (name: any) => void;
   }
 
   export const GameUI: React.FC<Props> = ({ 
@@ -49,9 +50,8 @@ interface Props {
   setFogNear, setFogFar,
   setHasStarted, setIsNight, setIsPaused, resetGame, setBattleResult,
   isVsAI, setIsVsAI, whiteSiegeUsed, blackSiegeUsed, fireSiege,
-  volume, setVolume, isMuted, setIsMuted, startMusic
+  volume, setVolume, isMuted, setIsMuted, startMusic, playSound
   }) => {
-
   const [isTutorialOpen, setIsTutorialOpen] = React.useState(false);
   const [isCreditsOpen, setIsCreditsOpen] = React.useState(false);
   const [showAIWarning, setShowAIWarning] = React.useState(false);
@@ -249,7 +249,7 @@ interface Props {
         {/* Top Right: Menu Button */}
         <div style={{ minWidth: '180px', display: 'flex', justifyContent: 'flex-end' }}>
           <button 
-            onClick={() => setIsPaused(true)}
+            onClick={() => { setIsPaused(true); playSound('menu'); }}
             disabled={!!winner}
             style={{
               ...menuButtonStyle,
@@ -308,7 +308,7 @@ interface Props {
                 <li><strong>Victory Conditions:</strong> No checkmate exists in this saga. You must execute the enemy King!</li>
               </ul>
             </div>
-            <button onClick={() => setIsTutorialOpen(false)} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', marginTop: '30px', fontWeight: 'bold' }}>
+            <button onClick={() => { setIsTutorialOpen(false); playSound('menu'); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', marginTop: '30px', fontWeight: 'bold' }}>
               Back to the Front
             </button>
           </div>
@@ -351,7 +351,7 @@ interface Props {
                 Sabri Bulbul (@thelastroadrunner)
               </div>
             </div>
-            <button onClick={() => setIsCreditsOpen(false)} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', marginTop: '10px', fontWeight: 'bold' }}>
+            <button onClick={() => { setIsCreditsOpen(false); playSound('menu'); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', marginTop: '10px', fontWeight: 'bold' }}>
               Return to Menu
             </button>
           </div>
@@ -416,10 +416,10 @@ interface Props {
           <div style={{ ...aoeBoxStyle, padding: '40px', borderRadius: '8px', textAlign: 'center', minWidth: '350px', border: '3px double #d4af37' }}>
             <h1 style={{ color: '#d4af37', marginTop: 0, marginBottom: '30px', textTransform: 'uppercase' }}>Battle Paused</h1>
             
-            <button onClick={() => setIsPaused(false)} style={menuButtonStyle}>Resume Campaign</button>
-            <button onClick={() => { setIsTutorialOpen(true); setIsPaused(false); }} style={menuButtonStyle}>The Art of War (Help)</button>
-            <button onClick={resetGame} style={{ ...menuButtonStyle, color: '#ff5252' }}>Abandon Match</button>
-            <button onClick={() => setIsNight(!isNight)} style={{ ...menuButtonStyle, background: isNight ? '#2a1a0a' : '#d4af37', color: isNight ? '#d4af37' : '#000' }}>
+            <button onClick={() => { setIsPaused(false); playSound('menu'); }} style={menuButtonStyle}>Resume Campaign</button>
+            <button onClick={() => { setIsTutorialOpen(true); setIsPaused(false); playSound('menu'); }} style={menuButtonStyle}>The Art of War (Help)</button>
+            <button onClick={() => { resetGame(); playSound('menu'); }} style={{ ...menuButtonStyle, color: '#ff5252' }}>Abandon Match</button>
+            <button onClick={() => { setIsNight(!isNight); playSound('menu'); }} style={{ ...menuButtonStyle, background: isNight ? '#2a1a0a' : '#d4af37', color: isNight ? '#d4af37' : '#000' }}>
               Set to {isNight ? 'Sunrise' : 'Twilight'}
             </button>
 
@@ -538,7 +538,7 @@ interface Props {
             {battleResult.isSiege ? 'Brute force from the shadows!' : (battleResult.success ? 'The objective is secured!' : 'The onslaught was resisted!')}
           </h2>
           <button 
-            onClick={() => setBattleResult(null)}
+            onClick={() => { setBattleResult(null); playSound('menu'); }}
             style={{ 
               ...menuButtonStyle, 
               width: '180px', 

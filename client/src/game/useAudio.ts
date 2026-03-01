@@ -1,20 +1,51 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 
-const SOUNDS = {
-  select: 'https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3',
-  move: 'https://assets.mixkit.co/active_storage/sfx/2568/2571-preview.mp3', // Reusing similar for move
-  attack: 'https://assets.mixkit.co/active_storage/sfx/1100/1100-preview.mp3',
-  victory: 'https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3',
-  defeat: 'https://assets.mixkit.co/active_storage/sfx/253/253-preview.mp3',
-  siege: 'https://assets.mixkit.co/active_storage/sfx/150/150-preview.mp3',
+// Using local reliable audio assets from public/sounds
+const SOUND_URLS = {
+  select: '/sounds/button-16a.mp3',
+  move: '/sounds/marching.mp3',
+  attack: '/sounds/clong-2.mp3',
+  victory: '/sounds/button-21.mp3',
+  defeat: '/sounds/button-19.mp3',
+  siege: '/sounds/bomb-falling-and-exploding-01.mp3',
+  menu: '/sounds/page-flip-03.mp3',
 };
 
-const BGM_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3'; // Epic-ish placeholder
+const AMBIENT_URLS = {
+  wood: '/sounds/wood-chop-axe-hit-02.mp3',
+  river: '/sounds/river-2.mp3',
+  shovel: '/sounds/shovel-into-snow-1.mp3',
+};
+
+const BGM_URL = '/sounds/fire-1.mp3';
 
 export const useAudio = () => {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const [isMusicStarted, setIsMusicStarted] = useState(false);
+
+  // Pre-load SFX
+  const sfxObjects = useMemo(() => {
+    const objs: Record<string, HTMLAudioElement> = {};
+    Object.entries(SOUND_URLS).forEach(([name, url]) => {
+      const audio = new Audio(url);
+      audio.preload = 'auto';
+      objs[name] = audio;
+    });
+    return objs;
+  }, []);
+
+  // Pre-load Ambient sounds
+  const ambientObjects = useMemo(() => {
+    const objs: Record<string, HTMLAudioElement> = {};
+    Object.entries(AMBIENT_URLS).forEach(([name, url]) => {
+      const audio = new Audio(url);
+      audio.preload = 'auto';
+      objs[name] = audio;
+    });
+    return objs;
+  }, []);
 
   useEffect(() => {
     bgmRef.current = new Audio(BGM_URL);
@@ -29,22 +60,59 @@ export const useAudio = () => {
     };
   }, []);
 
+  // Ambient sound scheduler
   useEffect(() => {
-    if (bgmRef.current) {
-      bgmRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
+    if (!isMusicStarted || isMuted) return;
 
-  const playSound = (soundName: keyof typeof SOUNDS) => {
+    const playRandomAmbient = () => {
+      const keys = Object.keys(ambientObjects);
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      const audio = ambientObjects[randomKey];
+      
+      if (audio) {
+        audio.currentTime = 0;
+        audio.volume = volume * 0.6; // Ambients slightly quieter than SFX
+        audio.play().catch(() => {});
+      }
+
+      // Schedule next sound between 15 and 45 seconds
+      const nextDelay = 15000 + Math.random() * 30000;
+      return setTimeout(playRandomAmbient, nextDelay);
+    };
+
+    const timer = setTimeout(playRandomAmbient, 10000); // Start first one after 10s
+    return () => clearTimeout(timer);
+  }, [isMusicStarted, isMuted, volume, ambientObjects]);
+
+  useEffect(() => {
+    const currentVol = isMuted ? 0 : volume;
+    if (bgmRef.current) bgmRef.current.volume = currentVol;
+    
+    // Update all SFX volumes
+    Object.values(sfxObjects).forEach(sfx => {
+      sfx.volume = currentVol;
+    });
+    
+    // Update all Ambient volumes
+    Object.values(ambientObjects).forEach(amb => {
+      amb.volume = currentVol * 0.6;
+    });
+  }, [volume, isMuted, sfxObjects, ambientObjects]);
+
+  const playSound = (soundName: keyof typeof SOUND_URLS) => {
     if (isMuted) return;
-    const audio = new Audio(SOUNDS[soundName]);
-    audio.volume = volume;
-    audio.play().catch(e => console.log("Audio play blocked by browser policy"));
+    const audio = sfxObjects[soundName];
+    if (audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
   };
 
   const startMusic = () => {
     if (bgmRef.current && bgmRef.current.paused) {
-      bgmRef.current.play().catch(e => console.log("BGM play blocked by browser policy"));
+      bgmRef.current.play().then(() => {
+        setIsMusicStarted(true);
+      }).catch(e => console.log("BGM play blocked by browser policy"));
     }
   };
 
