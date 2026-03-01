@@ -1,0 +1,38 @@
+[
+  {
+    "version": "0.5.0",
+    "title": "The Siege Update",
+    "date": "2026-03-01",
+    "changes": [
+      "Siege Overhaul: Interactive Onagers. Click to target single units for 12-16 DMG.",
+      "AI Intelligence Upgrades: Defensive evasion, Guardian perimeters, and Winner-First logic.",
+      "Opportunity Attacks: Moving units become Vulnerable (-2 DEF) for 1 turn.",
+      "Audio Engine: Dynamic BGM, local SFX, and random ambient sounds.",
+      "Bullseye Halo: New pulsing red indicators for vulnerable units.",
+      "UX Fixes: Click-through health bars and stable scenery."
+    ]
+  },
+  {
+    "version": "0.4.6",
+    "title": "Castarook Ascendant",
+    "date": "2026-03-01",
+    "changes": [
+      "Rebranding: Project officially renamed to CASTAROOK.",
+      "Piece Dice: Scaled combat dice (Pawn D6 to King D20).",
+      "Greedy AI: Added Singleplayer mode with strategic logic.",
+      "Terrain: Introduced Stone Plaza and procedural landmarks.",
+      "Stat Caps: Capped Veteran Kills and Defenses at +5."
+    ]
+  },
+  {
+    "version": "0.1.0",
+    "title": "Initial Release",
+    "date": "2026-02-20",
+    "changes": [
+      "Basic 3D Chess implementation with RPG Health and Combat.",
+      "Low-poly procedural environment.",
+      "Day/Night cycle.",
+      "Combat animations."
+    ]
+  }
+]

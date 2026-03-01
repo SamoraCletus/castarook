@@ -56,6 +56,14 @@ interface Props {
   const [isCreditsOpen, setIsCreditsOpen] = React.useState(false);
   const [isChangelogOpen, setIsChangelogOpen] = React.useState(false);
   const [showAIWarning, setShowAIWarning] = React.useState(false);
+  const [changelogData, setChangelogData] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/changelog.json')
+      .then(res => res.json())
+      .then(data => setChangelogData(data))
+      .catch(err => console.error("Failed to load changelog:", err));
+  }, []);
 
   const getLogColor = (type: LogEntry['type']) => {
     switch (type) {
@@ -345,26 +353,22 @@ interface Props {
               scrollbarWidth: 'thin',
               scrollbarColor: '#d4af37 rgba(0,0,0,0.2)'
             }}>
-              <div style={{ marginBottom: '25px' }}>
-                <h2 style={{ color: '#fff', borderBottom: '1px solid #d4af37', paddingBottom: '5px' }}>v0.5.0 - The Siege Update</h2>
-                <ul style={{ color: '#f0d9b5', lineHeight: '1.6' }}>
-                  <li><strong>Siege Overhaul:</strong> Interactive Onagers. Click to target single units for 12-16 DMG.</li>
-                  <li><strong>Opportunity Attacks:</strong> Moving units become Vulnerable (-2 DEF) for 1 turn.</li>
-                  <li><strong>Bullseye Halo:</strong> New pulsing red indicators for vulnerable units.</li>
-                  <li><strong>Audio Engine:</strong> Dynamic BGM, local SFX, and random ambient sounds.</li>
-                  <li><strong>UX Fixes:</strong> Click-through health bars and stable scenery.</li>
-                </ul>
-              </div>
-
-              <div style={{ marginBottom: '25px' }}>
-                <h2 style={{ color: '#fff', borderBottom: '1px solid #d4af37', paddingBottom: '5px' }}>v0.4.6 - Castarook Ascendant</h2>
-                <ul style={{ color: '#f0d9b5', lineHeight: '1.6' }}>
-                  <li><strong>Rebranding:</strong> Project officially renamed to CASTAROOK.</li>
-                  <li><strong>Piece Dice:</strong> Scaled combat dice (Pawn D6 to King D20).</li>
-                  <li><strong>Greedy AI:</strong> Added Singleplayer mode with strategic logic.</li>
-                  <li><strong>Terrain:</strong> Introduced Stone Plaza and procedural landmarks.</li>
-                </ul>
-              </div>
+              {changelogData.map((entry, idx) => (
+                <div key={idx} style={{ marginBottom: '25px' }}>
+                  <h2 style={{ color: '#fff', borderBottom: '1px solid #d4af37', paddingBottom: '5px', fontSize: '20px' }}>
+                    v{entry.version} - {entry.title}
+                    <span style={{ float: 'right', fontSize: '12px', color: '#aaa', marginTop: '8px' }}>{entry.date}</span>
+                  </h2>
+                  <ul style={{ color: '#f0d9b5', lineHeight: '1.6', fontSize: '16px' }}>
+                    {entry.changes.map((change: string, cIdx: number) => (
+                      <li key={cIdx}>{change}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              {changelogData.length === 0 && (
+                <div style={{ textAlign: 'center', color: '#aaa', marginTop: '50px' }}>Loading chronicles...</div>
+              )}
             </div>
 
             <button onClick={() => { setIsChangelogOpen(false); playSound('menu'); }} style={{ ...menuButtonStyle, background: 'linear-gradient(to bottom, #d4af37, #aa8a2e)', color: '#000', fontWeight: 'bold' }}>
