@@ -99,58 +99,53 @@ export const calculateBestMove = (
         const expectedAttackerTotal = (attackerDice / 2) + piece.kills;
         const expectedDefenderTotal = (defenderDice / 2) + targetPiece.defends - (targetPiece.isDebuffed ? 2 : 0);
         
-        if (expectedAttackerTotal > expectedDefenderTotal) {
-          // 1. Lethal blow on enemy king is the ULTIMATE priority
-          if (targetPiece.type === 'king' && targetPiece.hp <= expectedAttackerTotal - expectedDefenderTotal) {
-            score += 50000; // WIN THE GAME
-          } else if (targetPiece.type === 'king') {
-            score += 5000; // Highly prioritize damage to king
-          }
+        // AI is now more willing to take "even" or slightly risky fights
+        if (expectedAttackerTotal >= expectedDefenderTotal - 1) {
+          score += defenderVal * 3; // Increased attack weight
+          if (targetPiece.type === 'king') score += 5000;
           
-          // 2. Defensive bonus: reward killing a piece that is threatening our King
+          // HUNTER BONUS: Target vulnerable pieces!
+          if (targetPiece.isDebuffed) score += 40;
+
+          // Defensive bonus: reward killing a piece that is threatening our King
           if (isKingThreatened) {
             const enemyThreats = getValidMoves(targetPiece, pieces);
             if (myKing && enemyThreats.some(mt => mt.x === myKing.x && mt.y === myKing.y)) {
-              score += 8000; // High priority: Kill the assassin
+              score += 2000; // Priority: Kill the assassin (Toned down from 8000)
             }
           }
         } else {
-          score -= attackerVal; 
+          score -= attackerVal * 0.5; // Less afraid of losing pieces
         }
       } else {
         // 2. Positional Evaluation
         const advanceBonus = color === 'black' ? (piece.y - move.y) : (move.y - piece.y);
-        score += advanceBonus * 0.5;
+        score += advanceBonus * 2; // Increased advance weight (from 0.5)
 
         const centerDist = Math.abs(3.5 - move.x) + Math.abs(3.5 - move.y);
-        score -= centerDist * 0.2;
+        score -= centerDist * 0.5;
 
         if (piece.type === 'pawn' && (move.y === 0 || move.y === 7)) {
-          score += 80;
+          score += 150; // High priority for promotion
         }
 
-        // 3. KING SAFETY LOGIC
+        // 3. KING SAFETY LOGIC (Toned down to prevent "Coward AI")
         if (myKing) {
-          // A. King Evasion: If King is in danger, moving to a safe square is highly rewarded
           if (piece.type === 'king' && isKingThreatened) {
             if (!threatenedSquares.has(`${move.x},${move.y}`)) {
-              score += 9000; // Priority 2: Run away to safety
-            } else {
-              score -= 1000; // Penalize moving into/staying in another threatened square
+              score += 3000; // Run away if in danger (Toned down from 9000)
             }
           }
 
-          // B. Blocking/Guardian Logic: Reward pieces that stay near the King or move to protect him
           const distToKingAfter = Math.abs(move.x - myKing.x) + Math.abs(move.y - myKing.y);
           if (piece.type !== 'king') {
             if (distToKingAfter <= 2) {
-              score += 15; // Guardian bonus
+              score += 5; // Minimal Guardian bonus (Toned down from 15)
             }
-            // If the king is threatened, reward moving to block the assassin (moving closer to king)
             if (isKingThreatened) {
               const distToKingBefore = Math.abs(piece.x - myKing.x) + Math.abs(piece.y - myKing.y);
               if (distToKingAfter < distToKingBefore) {
-                score += 40; // Hustle to help the King
+                score += 15; // Small hustle to help (Toned down from 40)
               }
             }
           }

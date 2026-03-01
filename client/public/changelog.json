@@ -1,5 +1,17 @@
 [
   {
+    "version": "0.5.1",
+    "title": "Ruthless Intent",
+    "date": "2026-03-01",
+    "changes": [
+      "AI Re-balancing: Significantly increased AI aggression and board pressure.",
+      "Vulnerability Hunter: AI now actively prioritizes targets with the -2 DEF debuff.",
+      "Promotion Focus: AI is now more determined to promote pawns to Queens.",
+      "Calculated Risk: AI is more willing to take even-odds skirmishes instead of hiding.",
+      "Defensive Tweak: AI still protects its King but no longer retreats cowardly at the cost of the board."
+    ]
+  },
+  {
     "version": "0.5.0",
     "title": "The Siege Update",
     "date": "2026-03-01",
