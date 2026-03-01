@@ -18,10 +18,12 @@ interface Props {
   windStrength: number;
   whiteColor: string;
   blackColor: string;
+  showCoordinates: boolean;
   setBoardStyle: (style: 'wood' | 'stone' | 'marble') => void;
   setWindStrength: (val: number) => void;
   setWhiteColor: (color: string) => void;
   setBlackColor: (color: string) => void;
+  setShowCoordinates: (show: boolean) => void;
   setFogNear: (val: number) => void;
   setFogFar: (val: number) => void;
   setHasStarted: (started: boolean) => void;
@@ -31,6 +33,7 @@ interface Props {
   setBattleResult: (result: BattleResult | null) => void;
   isVsAI: boolean;
   setIsVsAI: (vsAI: boolean) => void;
+  turnCount: number;
   whiteSiegeUsed: boolean;
   blackSiegeUsed: boolean;
   fireSiege: (color: 'white' | 'black', targetX: number, targetY: number) => void;
@@ -45,11 +48,11 @@ interface Props {
   export const GameUI: React.FC<Props> = ({ 
   turn, selectedPiece, battleResult, pieces, isPaused, winner, isNight, hasStarted, 
   fogNear, fogFar, logs, 
-  boardStyle, windStrength, whiteColor, blackColor,
-  setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
+  boardStyle, windStrength, whiteColor, blackColor, showCoordinates,
+  setBoardStyle, setWindStrength, setWhiteColor, setBlackColor, setShowCoordinates,
   setFogNear, setFogFar,
   setHasStarted, setIsNight, setIsPaused, resetGame, setBattleResult,
-  isVsAI, setIsVsAI, whiteSiegeUsed, blackSiegeUsed, fireSiege,
+  isVsAI, setIsVsAI, turnCount, whiteSiegeUsed, blackSiegeUsed, fireSiege,
   volume, setVolume, isMuted, setIsMuted, startMusic, playSound
   }) => {
   const [isTutorialOpen, setIsTutorialOpen] = React.useState(false);
@@ -253,6 +256,16 @@ interface Props {
             boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
           }}>
             {isVsAI ? 'Player vs AI' : 'Player vs Player'}
+          </div>
+          <div style={{
+            marginTop: '4px',
+            color: '#aaa',
+            fontSize: '11px',
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+          }}>
+            Turn {turnCount}
           </div>
         </div>
         
@@ -499,6 +512,15 @@ interface Props {
                     }}>{s}</button>
                   ))}
                 </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <button onClick={() => { setShowCoordinates(!showCoordinates); playSound('menu'); }} style={{ 
+                  width: '100%', padding: '8px', fontSize: '12px', background: showCoordinates ? '#d4af37' : '#222', 
+                  color: showCoordinates ? '#000' : '#d4af37', border: '1px solid #d4af37', cursor: 'pointer', pointerEvents: 'auto'
+                }}>
+                  {showCoordinates ? '📍 Coordinates: Visible' : '📍 Coordinates: Hidden'}
+                </button>
               </div>
 
               <div style={{ marginBottom: '15px' }}>

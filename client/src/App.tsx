@@ -57,10 +57,10 @@ function App() {
   const { 
     pieces, turn, selectedPieceId, battleResult, isRolling, isPaused, winner, 
     isNight, hasStarted, fogNear, fogFar, logs,
-    boardStyle, windStrength, whiteColor, blackColor,
-    setBoardStyle, setWindStrength, setWhiteColor, setBlackColor,
+    boardStyle, windStrength, whiteColor, blackColor, showCoordinates,
+    setBoardStyle, setWindStrength, setWhiteColor, setBlackColor, setShowCoordinates,
     setHasStarted, setIsNight, setIsPaused, setFogNear, setFogFar,
-    resetGame, handleSquareClick, handleOnagerClick, setBattleResult, isVsAI, setIsVsAI,
+    resetGame, handleSquareClick, handleOnagerClick, setBattleResult, isVsAI, setIsVsAI, turnCount,
     whiteSiegeUsed, blackSiegeUsed, isSiegeFiring, fireSiege, selectedOnagerColor
   } = useChessGame(playSound);
 
@@ -124,6 +124,7 @@ function App() {
             highlightColor={selectedOnagerColor ? "#f44336" : undefined}
             onSquareClick={handleSquareClick} 
             boardStyle={boardStyle}
+            showCoordinates={showCoordinates}
           />
           {pieces.map(piece => (
             <ChessPiece 
@@ -179,10 +180,12 @@ function App() {
         windStrength={windStrength}
         whiteColor={whiteColor}
         blackColor={blackColor}
+        showCoordinates={showCoordinates}
         setBoardStyle={setBoardStyle}
         setWindStrength={setWindStrength}
         setWhiteColor={setWhiteColor}
         setBlackColor={setBlackColor}
+        setShowCoordinates={setShowCoordinates}
         setFogNear={setFogNear}
         setFogFar={setFogFar}
         setHasStarted={setHasStarted}
@@ -192,6 +195,7 @@ function App() {
         setBattleResult={setBattleResult}
         isVsAI={isVsAI}
         setIsVsAI={setIsVsAI}
+        turnCount={turnCount}
         whiteSiegeUsed={whiteSiegeUsed}
         blackSiegeUsed={blackSiegeUsed}
         fireSiege={fireSiege}

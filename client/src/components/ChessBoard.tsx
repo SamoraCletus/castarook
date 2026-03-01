@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCursor } from '@react-three/drei';
+import { useCursor, Text } from '@react-three/drei';
 import type { Piece, Position } from '../types';
 
 interface SquareProps {
@@ -44,9 +44,10 @@ interface BoardProps {
   highlightColor?: string;
   onSquareClick: (x: number, y: number) => void;
   boardStyle: 'wood' | 'stone' | 'marble';
+  showCoordinates?: boolean;
 }
 
-export const ChessBoard: React.FC<BoardProps> = ({ validMoves, highlightSquares = [], highlightColor, onSquareClick, boardStyle }) => {
+export const ChessBoard: React.FC<BoardProps> = ({ validMoves, highlightSquares = [], highlightColor, onSquareClick, boardStyle, showCoordinates }) => {
   const squares = [];
   
   const getStyleColors = () => {
@@ -83,6 +84,40 @@ export const ChessBoard: React.FC<BoardProps> = ({ validMoves, highlightSquares 
     }
   }
 
+  const renderCoordinates = () => {
+    if (!showCoordinates) return null;
+    const labels = [];
+    const textColor = boardStyle === 'stone' ? '#fff' : '#d4af37';
+
+    for (let i = 0; i < 8; i++) {
+      // A-H (X-axis)
+      labels.push(
+        <Text
+          key={`label-x-${i}`}
+          position={[i - 3.5, 0.51, 4.3]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          fontSize={0.3}
+          color={textColor}
+        >
+          {String.fromCharCode(65 + i)}
+        </Text>
+      );
+      // 1-8 (Y-axis)
+      labels.push(
+        <Text
+          key={`label-y-${i}`}
+          position={[-4.3, 0.51, i - 3.5]}
+          rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+          fontSize={0.3}
+          color={textColor}
+        >
+          {i + 1}
+        </Text>
+      );
+    }
+    return labels;
+  };
+
   return (
     <group>
       {/* Board Base */}
@@ -91,6 +126,9 @@ export const ChessBoard: React.FC<BoardProps> = ({ validMoves, highlightSquares 
         <meshStandardMaterial color={styleColors.base} />
       </mesh>
       
+      {/* Coordinates */}
+      {renderCoordinates()}
+
       {/* Squares */}
       {squares}
     </group>

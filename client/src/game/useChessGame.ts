@@ -15,6 +15,7 @@ export const useChessGame = (playSound: (name: any) => void) => {
   const [isNight, setIsNight] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [isVsAI, setIsVsAI] = useState(false);
+  const [turnCount, setTurnCount] = useState(1);
   const [aiMoveSequence, setAiMoveSequence] = useState<{ step: number, move: { startX: number, startY: number, targetX: number, targetY: number } } | null>(null);
   const [fogNear, setFogNear] = useState(10);
   const [fogFar, setFogFar] = useState(80);
@@ -23,6 +24,7 @@ export const useChessGame = (playSound: (name: any) => void) => {
   const [windStrength, setWindStrength] = useState(1.0);
   const [whiteColor, setWhiteColor] = useState('#f0d9b5');
   const [blackColor, setBlackColor] = useState('#4a4a4a');
+  const [showCoordinates, setShowCoordinates] = useState(false);
 
   const addLog = (message: string, type: LogEntry['type']) => {
     const newLog: LogEntry = {
@@ -97,6 +99,7 @@ export const useChessGame = (playSound: (name: any) => void) => {
   const resetGame = () => {
     setPieces(setupBoard());
     setTurn('white');
+    setTurnCount(1);
     setSelectedPieceId(null);
     setBattleResult(null);
     setIsRolling(false);
@@ -114,6 +117,9 @@ export const useChessGame = (playSound: (name: any) => void) => {
   const nextTurn = (currentTurn: 'white' | 'black') => {
     const nextPlayer = currentTurn === 'white' ? 'black' : 'white';
     setTurn(nextPlayer);
+    if (nextPlayer === 'white') {
+      setTurnCount(prev => prev + 1);
+    }
     // Clear debuffs for the player who is about to start their turn
     setPieces(prev => prev.map(p => p.color === nextPlayer ? { ...p, isDebuffed: false } : p));
   };
@@ -410,10 +416,12 @@ export const useChessGame = (playSound: (name: any) => void) => {
     windStrength,
     whiteColor,
     blackColor,
+    showCoordinates,
     setBoardStyle,
     setWindStrength,
     setWhiteColor,
     setBlackColor,
+    setShowCoordinates,
     setFogNear,
     setFogFar,
     setHasStarted,
@@ -425,6 +433,7 @@ export const useChessGame = (playSound: (name: any) => void) => {
     setBattleResult,
     isVsAI,
     setIsVsAI,
+    turnCount,
     whiteSiegeUsed,
     blackSiegeUsed,
     isSiegeFiring,

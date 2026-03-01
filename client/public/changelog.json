@@ -1,5 +1,15 @@
 [
   {
+    "version": "0.5.2",
+    "title": "Tactical Insight",
+    "date": "2026-03-01",
+    "changes": [
+      "Turn Counter: Track the progression of your saga with the new Turn Count indicator.",
+      "Battle Coordinates: Toggleable A-H and 1-8 labels for precise strategic command.",
+      "UX Stability: Resolved a UI reference error and font loading issues for smoother gameplay."
+    ]
+  },
+  {
     "version": "0.5.1",
     "title": "Ruthless Intent",
     "date": "2026-03-01",
