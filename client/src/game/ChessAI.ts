@@ -33,6 +33,17 @@ export const calculateBestMove = (
 ): { piece: Piece, target: Position, score: number, isSiege?: boolean } | null => {
   const myPieces = pieces.filter(p => p.color === color && p.hp > 0);
   const enemyPieces = pieces.filter(p => p.color !== color && p.hp > 0);
+  const myKing = myPieces.find(p => p.type === 'king');
+
+  // --- Defensive Analysis ---
+  // Identify all squares currently threatened by the enemy
+  const threatenedSquares: Set<string> = new Set();
+  enemyPieces.forEach(ep => {
+    const moves = getValidMoves(ep, pieces);
+    moves.forEach(m => threatenedSquares.add(`${m.x},${m.y}`));
+  });
+
+  const isKingThreatened = myKing && threatenedSquares.has(`${myKing.x},${myKing.y}`);
 
   let bestMove: { piece: Piece, target: Position, score: number, isSiege?: boolean } | null = null;
   let bestScore = -Infinity;
@@ -43,18 +54,18 @@ export const calculateBestMove = (
     const targets = enemyPieces.filter(p => rangeY.includes(p.y));
     
     for (const target of targets) {
-      // Siege deals 12-16 dmg.
       const avgDmg = 14;
       let score = 0;
       
       if (target.hp <= avgDmg) {
-        // Can kill it!
         score = evaluatePiece(target) * 3;
         if (target.type === 'king') score += 10000;
       } else {
-        // Just damage it
         score = avgDmg * 2;
       }
+
+      // If our King is in danger, prioritizing Siege on the biggest threat might help
+      if (isKingThreatened) score += 1000; 
 
       if (score > bestScore) {
         bestScore = score;
@@ -69,7 +80,6 @@ export const calculateBestMove = (
   }
 
   // --- Consider Normal Moves ---
-  // Shuffle pieces to add some randomness when scores are equal
   const shuffledPieces = [...myPieces].sort(() => Math.random() - 0.5);
 
   for (const piece of shuffledPieces) {
@@ -77,49 +87,76 @@ export const calculateBestMove = (
     
     for (const move of validMoves) {
       let score = 0;
-      
       const targetPiece = pieces.find(p => p.x === move.x && p.y === move.y);
       
+      // 1. Combat Evaluation
       if (targetPiece && targetPiece.color !== color) {
-        // It's an attack! Let's calculate expected value.
         const attackerVal = evaluatePiece(piece);
         const defenderVal = evaluatePiece(targetPiece);
-        
         const attackerDice = getDiceSides(piece.type);
         const defenderDice = getDiceSides(targetPiece.type);
         
-        // Very basic expectation: Average roll + stats
         const expectedAttackerTotal = (attackerDice / 2) + piece.kills;
         const expectedDefenderTotal = (defenderDice / 2) + targetPiece.defends - (targetPiece.isDebuffed ? 2 : 0);
         
         if (expectedAttackerTotal > expectedDefenderTotal) {
-          // We are likely to win this skirmish
-          // Reward based on how valuable the target is
-          score += defenderVal * 2; 
+          // 1. Lethal blow on enemy king is the ULTIMATE priority
+          if (targetPiece.type === 'king' && targetPiece.hp <= expectedAttackerTotal - expectedDefenderTotal) {
+            score += 50000; // WIN THE GAME
+          } else if (targetPiece.type === 'king') {
+            score += 5000; // Highly prioritize damage to king
+          }
           
-          // Extra incentive if we can kill the King
-          if (targetPiece.type === 'king') score += 5000;
+          // 2. Defensive bonus: reward killing a piece that is threatening our King
+          if (isKingThreatened) {
+            const enemyThreats = getValidMoves(targetPiece, pieces);
+            if (myKing && enemyThreats.some(mt => mt.x === myKing.x && mt.y === myKing.y)) {
+              score += 8000; // High priority: Kill the assassin
+            }
+          }
         } else {
-          // We are likely to lose
-          score -= attackerVal; // Penalize based on our piece's value
+          score -= attackerVal; 
         }
       } else {
-        // It's an empty square move
-        // Encourage moving forward (for black, moving to lower Y values is forward)
+        // 2. Positional Evaluation
         const advanceBonus = color === 'black' ? (piece.y - move.y) : (move.y - piece.y);
         score += advanceBonus * 0.5;
 
-        // Encourage controlling the center
         const centerDist = Math.abs(3.5 - move.x) + Math.abs(3.5 - move.y);
         score -= centerDist * 0.2;
 
-        // Promotion incentive
         if (piece.type === 'pawn' && (move.y === 0 || move.y === 7)) {
           score += 80;
         }
+
+        // 3. KING SAFETY LOGIC
+        if (myKing) {
+          // A. King Evasion: If King is in danger, moving to a safe square is highly rewarded
+          if (piece.type === 'king' && isKingThreatened) {
+            if (!threatenedSquares.has(`${move.x},${move.y}`)) {
+              score += 9000; // Priority 2: Run away to safety
+            } else {
+              score -= 1000; // Penalize moving into/staying in another threatened square
+            }
+          }
+
+          // B. Blocking/Guardian Logic: Reward pieces that stay near the King or move to protect him
+          const distToKingAfter = Math.abs(move.x - myKing.x) + Math.abs(move.y - myKing.y);
+          if (piece.type !== 'king') {
+            if (distToKingAfter <= 2) {
+              score += 15; // Guardian bonus
+            }
+            // If the king is threatened, reward moving to block the assassin (moving closer to king)
+            if (isKingThreatened) {
+              const distToKingBefore = Math.abs(piece.x - myKing.x) + Math.abs(piece.y - myKing.y);
+              if (distToKingAfter < distToKingBefore) {
+                score += 40; // Hustle to help the King
+              }
+            }
+          }
+        }
       }
 
-      // Add a tiny bit of random noise to make the AI less predictable
       score += Math.random() * 2;
 
       if (score > bestScore) {
